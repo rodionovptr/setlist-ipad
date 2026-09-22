@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/api/yadisk/:path*", "destination": "/api/yadisk" }
+  ]
+}
