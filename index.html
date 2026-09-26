@@ -340,7 +340,7 @@ const EXPORT_DIR = '/Сет-листы/Экспорт'
 const SEC_LABELS = {pop:'Поп хиты',poprock:'Поп-рок',modern:'Современное',soviet:'Советские',extra:'Доп (редкие)'}
 
 let songs=[], sets={'1':[],'2':[],'x':[]}, history=[]
-let dragId=null, dragFrom=null, dragFromIdx=null, dragOverIdx=null, dragGroup=false, dragGroupEnd=null
+let dragId=null, dragFrom=null, dragFromIdx=null, dragOverIdx=null, dragOverZone=null, dragGroup=false, dragGroupEnd=null, dragDropHandled=false
 
 // ── YANDEX DISK API via proxy ──────────────────────────
 async function yadisk(method, path, opts={}) {
@@ -786,16 +786,38 @@ function updateCounts() {
 
 // ── DRAG FROM LIBRARY ─────────────────────────────────
 function lDragStart(e,id) {
-  dragId=id; dragFrom='left'; dragFromIdx=null
+  dragId=id; dragFrom='left'; dragFromIdx=null; dragOverZone=null; dragDropHandled=false
   e.dataTransfer.effectAllowed='copy'
   e.dataTransfer.setData('text/plain',id)
   requestAnimationFrame(()=>e.currentTarget.classList.add('dragging-src'))
 }
-function lDragEnd(e) { e.currentTarget.classList.remove('dragging-src') }
+function lDragEnd(e) {
+  e.currentTarget.classList.remove('dragging-src')
+  // iPad/Safari may fire dragend without delivering drop for draggable
+  // containers that contain nested content. MIX needs a fallback so the
+  // whole mashup can still be inserted into the last zone it was dragged over.
+  if(dragFrom==='left' && !dragDropHandled && dragId){
+    const song=songs.find(x=>x.id===dragId)
+    if(song?.isMix && dragOverZone){
+      const zone=dragOverZone
+      const at=dragOverIdx!==null?dragOverIdx:sets[zone].length
+      if(!usedIds().has(dragId)){
+        saveHistory()
+        sets[zone].splice(at,0,...song.children.map(c=>({
+          id:c.id,title:c.title,section:song.section,exactFile:c.exactFile,diskPath:c.diskPath||null,
+          isMixChild:true,mixParentId:song.id,mixParentTitle:song.title
+        })))
+        renderAll()
+      }
+    }
+  }
+  dragId=null; dragFrom=null; dragFromIdx=null; dragOverIdx=null; dragOverZone=null; dragGroup=false; dragGroupEnd=null; dragDropHandled=false
+}
 
 // ── DROP ZONES ────────────────────────────────────────
 function zOver(e,zone) {
   e.preventDefault()
+  dragOverZone=zone
   e.dataTransfer.dropEffect=(dragGroup?'move':'copy')
   document.getElementById('zone-'+zone).classList.add('over')
   dragOverIdx=getInsertIdx(e,zone)
@@ -806,6 +828,7 @@ function zLeave(e,zone) {
 }
 function zDrop(e,zone) {
   e.preventDefault()
+  dragDropHandled=true
   document.getElementById('zone-'+zone).classList.remove('over')
   if(!dragId) return
   const at=dragOverIdx!==null?dragOverIdx:sets[zone].length
@@ -840,7 +863,7 @@ function zDrop(e,zone) {
     const item=sets[dragFrom].splice(dragFromIdx,1)[0]
     sets[zone].splice(at,0,item)
   }
-  dragId=null; dragFrom=null; dragFromIdx=null; dragOverIdx=null; dragGroup=false; dragGroupEnd=null
+  dragId=null; dragFrom=null; dragFromIdx=null; dragOverIdx=null; dragOverZone=null; dragGroup=false; dragGroupEnd=null; dragDropHandled=false
   renderAll()
 }
 
