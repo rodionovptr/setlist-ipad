@@ -13,7 +13,7 @@ module.exports = async function handler(req, res) {
   const ep = req.query.ep || '/'
   const params = new URLSearchParams()
   Object.entries(req.query).forEach(([k, v]) => {
-    if (k !== 'ep') params.set(k, v)
+    if (k !== 'ep' && k !== 'proxy') params.set(k, v)
   })
 
   const yadiskUrl = 'https://cloud-api.yandex.net/v1/disk' + ep +
@@ -24,11 +24,27 @@ module.exports = async function handler(req, res) {
       method: req.method,
       headers: {
         'Authorization': 'OAuth ' + token,
-        'Content-Type': 'application/json',
+        ...(req.method !== 'GET' && req.method !== 'HEAD' && req.body !== undefined
+          ? {'Content-Type': 'application/json'} : {})
       },
-      body: req.method !== 'GET' && req.method !== 'HEAD'
+      body: req.method !== 'GET' && req.method !== 'HEAD' && req.body !== undefined
         ? JSON.stringify(req.body) : undefined
     })
+
+    // Browser CORS blocks direct fetch() of Yandex's temporary download URL.
+    // For project JSON files, proxy the actual downloaded bytes through Vercel.
+    if (req.query.proxy === '1' && ep === '/resources/download' && response.ok) {
+      const meta = await response.json()
+      if (!meta?.href) {
+        res.status(502).json({error:'Yandex Disk did not return a download URL'})
+        return
+      }
+      const fileResponse = await fetch(meta.href)
+      const fileCt = fileResponse.headers.get('content-type') || 'application/octet-stream'
+      const buffer = Buffer.from(await fileResponse.arrayBuffer())
+      res.status(fileResponse.status).setHeader('Content-Type', fileCt).send(buffer)
+      return
+    }
 
     const ct = response.headers.get('content-type') || ''
     if (ct.includes('application/json')) {
