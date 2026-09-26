@@ -369,14 +369,14 @@ async function init() {
     setStatus('Загрузка данных...')
     await ensureDir('/Сет-листы')
     try {
+      const catUrl = await getDownloadUrl('/Сет-листы/songs_catalog.json')
+      songs = await (await fetch(catUrl)).json()
+    } catch(e) { await scanSongsFolder() }
+    try {
       const dlUrl = await getDownloadUrl(PROJECT_FILE)
-      const res = await fetch(dlUrl)
-      const data = await res.json()
-      if (data.songs) songs = data.songs
+      const data = await (await fetch(dlUrl)).json()
       if (data.sets) sets = data.sets
-    } catch(e) {
-      await scanSongsFolder()
-    }
+    } catch(e) {}
     setStatus(''); showLoaderBtns()
   } catch(e) {
     setStatus('Ошибка: '+e.message); showLoaderBtns()
