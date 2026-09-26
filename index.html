@@ -86,6 +86,9 @@ body{font-family:'Golos Text',sans-serif;background:var(--bg);color:var(--text);
 .s-add{font-size:14px;color:rgba(255,255,255,.8);flex-shrink:0}
 
 .mix-head{border-radius:7px;padding:8px 10px;border:1px solid rgba(255,255,255,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.4);display:flex;align-items:center;gap:6px;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-user-drag:element;touch-action:auto;transition:opacity .15s}
+.mix-head .s-title{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.25;min-width:0}
+.mix-head{min-height:42px;align-items:flex-start}
+.mix-head .mix-badge,.mix-head .s-add{margin-top:2px}
 .mix-head:hover{opacity:.9}
 .mix-head.used{opacity:.3;cursor:default;pointer-events:none}
 .song-card > *, .mix-head > *, .set-item > * { pointer-events:none; -webkit-user-select:none; user-select:none; }
@@ -129,6 +132,9 @@ body{font-family:'Golos Text',sans-serif;background:var(--bg);color:var(--text);
 .set-grip{color:rgba(255,255,255,.5);font-size:12px;flex-shrink:0;cursor:grab}
 
 .mix-grp-hdr{border-radius:5px;padding:4px 10px;margin-bottom:2px;display:flex;align-items:center;gap:6px;font-family:'Unbounded',sans-serif;font-size:7px;font-weight:700;color:#fff}
+.mix-grp-hdr{cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-user-drag:element;touch-action:auto}
+.mix-grp-hdr.dragging-src{opacity:.25}
+
 .mix-grp-hdr.s-pop{background:var(--c-pop)}
 .mix-grp-hdr.s-poprock{background:var(--c-poprock)}
 .mix-grp-hdr.s-modern{background:var(--c-modern)}
@@ -333,7 +339,7 @@ const EXPORT_DIR = '/Сет-листы/Экспорт'
 const SEC_LABELS = {pop:'Поп хиты',poprock:'Поп-рок',modern:'Современное',soviet:'Советские',extra:'Доп (редкие)'}
 
 let songs=[], sets={'1':[],'2':[],'x':[]}, history=[]
-let dragId=null, dragFrom=null, dragFromIdx=null, dragOverIdx=null
+let dragId=null, dragFrom=null, dragFromIdx=null, dragOverIdx=null, dragGroup=false, dragGroupEnd=null
 
 // ── YANDEX DISK API via proxy ──────────────────────────
 async function yadisk(method, path, opts={}) {
@@ -682,7 +688,25 @@ function renderZone(z) {
       while(j<list.length&&list[j].isMixChild&&list[j].mixParentId===s.mixParentId) j++
       const hdr=document.createElement('div')
       hdr.className=`mix-grp-hdr s-${s.section}`
+      hdr.draggable=true
+      hdr.dataset.start=i
+      hdr.dataset.end=j
       hdr.innerHTML=`<span>⊞ ${s.mixParentTitle}</span><button class="mix-grp-rm" onclick="removeMixGrp('${z}',${i},${j})">×</button>`
+      hdr.addEventListener('dragstart',ev=>{
+        dragId=s.mixParentId
+        dragFrom=z
+        dragFromIdx=i
+        dragGroup=true
+        dragGroupEnd=j
+        ev.dataTransfer.effectAllowed='move'
+        ev.dataTransfer.setData('text/plain',s.mixParentId)
+        requestAnimationFrame(()=>hdr.classList.add('dragging-src'))
+      })
+      hdr.addEventListener('dragend',()=>{
+        hdr.classList.remove('dragging-src')
+        dragGroup=false
+        dragGroupEnd=null
+      })
       el.appendChild(hdr)
       for(let k=i;k<j;k++) el.appendChild(makeSetItem(list[k],k,z,true))
       el.appendChild(mkLine(z,j))
@@ -703,7 +727,7 @@ function makeSetItem(s,i,z,isMix) {
   card.dataset.idx=i
   card.innerHTML=`<span class="set-grip">⠿</span><span class="set-num">${i+1}</span><span class="set-title">${s.title}</span><button class="set-rm" onclick="removeItem('${z}',${i})">×</button>`
   card.addEventListener('dragstart',ev=>{
-    dragId=s.id; dragFrom=z; dragFromIdx=i
+    dragId=s.id; dragFrom=z; dragFromIdx=i; dragGroup=false; dragGroupEnd=null
     ev.dataTransfer.effectAllowed='all'
     ev.dataTransfer.setData('text/plain',s.id)
     requestAnimationFrame(()=>card.classList.add('dragging-src'))
@@ -715,6 +739,12 @@ function makeSetItem(s,i,z,isMix) {
     const rect=card.getBoundingClientRect()
     const after=ev.clientY>rect.top+rect.height/2
     const target=after?i+1:i
+
+    if(dragGroup){
+      dragOverIdx=target
+      return
+    }
+
     if(target!==dragFromIdx&&target!==dragFromIdx+1){
       const item=sets[z].splice(dragFromIdx,1)[0]
       const ni=target>dragFromIdx?target-1:target
@@ -761,7 +791,7 @@ function zDrop(e,zone) {
   const at=dragOverIdx!==null?dragOverIdx:sets[zone].length
 
   if(dragFrom==='left') {
-    if(usedIds().has(dragId)){dragId=null;return}
+    if(usedIds().has(dragId)){dragId=null;dragGroup=false;dragGroupEnd=null;return}
     const song=songs.find(s=>s.id===dragId); if(!song) return
     saveHistory()
     if(song.isMix) {
@@ -772,12 +802,22 @@ function zDrop(e,zone) {
     } else {
       sets[zone].splice(at,0,{id:song.id,title:song.title,section:song.section,exactFile:song.exactFile,diskPath:song.diskPath||null})
     }
+  } else if(dragGroup) {
+    saveHistory()
+    const start=dragFromIdx, end=dragGroupEnd
+    if(dragFrom===zone && at>=start && at<=end){
+      dragId=null; dragFrom=null; dragFromIdx=null; dragOverIdx=null; dragGroup=false; dragGroupEnd=null
+      return
+    }
+    const block=sets[dragFrom].splice(start,end-start)
+    const insertAt=(dragFrom===zone && at>start) ? at-(end-start) : at
+    sets[zone].splice(Math.max(0,insertAt),0,...block)
   } else if(dragFrom!==zone) {
     saveHistory()
     const item=sets[dragFrom].splice(dragFromIdx,1)[0]
     sets[zone].splice(at,0,item)
   }
-  dragId=null; dragFrom=null; dragFromIdx=null; dragOverIdx=null
+  dragId=null; dragFrom=null; dragFromIdx=null; dragOverIdx=null; dragGroup=false; dragGroupEnd=null
   renderAll()
 }
 
