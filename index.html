@@ -136,8 +136,6 @@ body{font-family:'Golos Text',sans-serif;background:var(--bg);color:var(--text);
 
 .drop-line{height:3px;background:var(--red);border-radius:2px;margin:2px 0;display:none}
 .drop-line.show{display:block}
-.break-slide{margin:12px 0 4px;padding:18px 10px;border:1px dashed rgba(120,120,160,.45);border-radius:8px;background:rgba(255,255,255,.35);text-align:center;font-family:'Unbounded',sans-serif;font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--text2);user-select:none}
-.break-slide::before{content:'⏸';display:block;font-size:13px;margin-bottom:6px;opacity:.55}
 
 /* SHEET */
 .overlay{display:none;position:fixed;inset:0;background:rgba(180,180,220,.4);backdrop-filter:blur(6px);z-index:100;align-items:center;justify-content:center}
@@ -585,14 +583,6 @@ function renderZone(z) {
   }
   if(list.length===0) el.appendChild(mkLine(z,0))
 
-  // Антракт всегда стоит на границе отделений, но не является песней:
-  // он не входит в счётчик и не участвует в drag-and-drop.
-  if(z==='1' || z==='2') {
-    const br=document.createElement('div')
-    br.className='break-slide'
-    br.textContent='АНТРАКТ'
-    el.appendChild(br)
-  }
 }
 
 function makeSetItem(s,i,z,isMix) {
@@ -738,33 +728,16 @@ function confirmAddSong() {
 }
 
 // ── EXPORT ────────────────────────────────────────────
-function makeBreakSlideSvg() {
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
-  <rect width="1920" height="1080" fill="#ffffff"/>
-  <text x="960" y="560" text-anchor="middle" font-family="Arial, sans-serif" font-size="72" font-weight="700" fill="#222222" letter-spacing="8">АНТРАКТ</text>
-</svg>`
-}
+const BREAK_FILE = `${SONGS_DIR}/АНТРАКТ.JPG`
 
-async function exportBreakSlide(destination) {
-  const canvas=document.createElement('canvas')
-  canvas.width=1920; canvas.height=1080
-  const ctx=canvas.getContext('2d')
-  ctx.fillStyle='#ffffff'
-  ctx.fillRect(0,0,canvas.width,canvas.height)
-  ctx.fillStyle='#222222'
-  ctx.font='700 72px Arial, sans-serif'
-  ctx.textAlign='center'
-  ctx.textBaseline='middle'
-  ctx.fillText('АНТРАКТ',960,540)
-  const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Не удалось создать слайд АНТРАКТ')),'image/jpeg',0.95))
-  const up=await yadisk('GET','/resources/upload',{params:{path:destination,overwrite:'true'}})
-  const res=await fetch(up.href,{method:'PUT',body:blob})
-  if(!res.ok) throw new Error(`Ошибка загрузки АНТРАКТ: ${res.status}`)
+async function copyBreakSlide(destination) {
+  await copyFile(BREAK_FILE, destination)
 }
 
 function exportEntries() {
   const entries=[]
+  // Слайд 00: антракт/заставка перед началом концерта.
+  entries.push({type:'break',title:'АНТРАКТ',number:0})
   sets['1'].forEach(s=>entries.push({type:'song',song:s}))
   entries.push({type:'break',title:'АНТРАКТ'})
   sets['2'].forEach(s=>entries.push({type:'song',song:s}))
@@ -796,13 +769,13 @@ async function runExport() {
     let counter=1, errors=[]
 
     for(const entry of entries) {
-      const num=String(counter).padStart(2,'0')
+      const num=entry.number===0?'00':String(counter-1).padStart(2,'0')
       if(entry.type==='break') {
         document.getElementById('prog-txt').textContent=`${num}. АНТРАКТ`
         document.getElementById('prog-bar').style.width=`${Math.round(counter/total*100)}%`
-        const destination=`${outDir}/${num} - АНТРАКТ.jpg`
-        try { await exportBreakSlide(destination) }
-        catch(e) { errors.push(`АНТРАКТ: ${e.message}`) }
+        const destination=`${outDir}/${num} - АНТРАКТ.JPG`
+        try { await copyBreakSlide(destination) }
+        catch(e) { errors.push(`АНТРАКТ.JPG: ${e.message}`) }
       } else {
         const s=entry.song
         const clean=s.title.replace(/[<>:"/\\|?*]/g,'')
