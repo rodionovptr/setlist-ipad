@@ -355,10 +355,18 @@ async function listDir(path) {
   return d?._embedded?.items||[]
 }
 async function ensureDir(path) {
-  try { await yadisk('PUT','/resources',{params:{path}}) } catch(e) {}
+  // Создаём каждый уровень отдельно. Если папка уже существует,
+  // YaDisk вернёт 409, после чего GET подтверждает её наличие.
+  const parts = path.split('/').filter(Boolean)
+  let current = ''
+  for (const part of parts) {
+    current += '/' + part
+    await yadisk('PUT','/resources',{params:{path:current}})
+    await yadisk('GET','/resources',{params:{path:current}})
+  }
 }
 async function copyFile(from,to) {
-  await yadisk('POST','/resources/copy',{params:{from,path:to,overwrite:'true',force_async:'false'}})
+  await yadisk('POST','/resources/copy',{params:{from,path:to,overwrite:'true'}})
 }
 
 // ── INIT ──────────────────────────────────────────────
@@ -657,7 +665,9 @@ async function runExport() {
   const outDir=`${EXPORT_DIR}/${name}`
   document.getElementById('prog-overlay').classList.add('open')
   try {
-    await ensureDir(EXPORT_DIR); await ensureDir(outDir)
+    await ensureDir('/Сет-листы')
+    await ensureDir(EXPORT_DIR)
+    await ensureDir(outDir)
     const allSongs=[...sets['1'],...sets['2'],...sets['x']]
     const total=allSongs.length; let counter=1, errors=[]
     for(const s of allSongs) {
@@ -669,13 +679,15 @@ async function runExport() {
       if(srcPath) {
         const ext=s.exactFile?('.'+s.exactFile.split('.').pop()):'.jpg'
         try { await copyFile(srcPath,`${outDir}/${num} - ${clean}${ext}`) }
-        catch(e) { errors.push(s.title) }
-      } else { errors.push(s.title) }
+        catch(e) { errors.push(`${s.title}: ${e.message}`) }
+      } else { errors.push(`${s.title}: нет пути к файлу`) }
       counter++
     }
     document.getElementById('prog-overlay').classList.remove('open')
-    if(errors.length) toast('err',`Готово. Не найдено: ${errors.length}`)
-    else toast('ok',`Готово! ${total} файлов → Сет-листы/Экспорт/${name}`)
+    if(errors.length) {
+      console.error('Ошибки экспорта:', errors)
+      toast('err',`Готово с ошибками: ${errors.length}. ${errors[0]}`)
+    } else toast('ok',`Готово! ${total} файлов → Сет-листы/Экспорт/${name}`)
   } catch(e) {
     document.getElementById('prog-overlay').classList.remove('open')
     toast('err','Ошибка: '+e.message)
