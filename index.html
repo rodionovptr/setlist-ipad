@@ -326,7 +326,8 @@ let dragId=null, dragFrom=null, dragFromIdx=null, dragOverIdx=null
 
 // ── YANDEX DISK API via proxy ──────────────────────────
 async function yadisk(method, path, opts={}) {
-  const url = new URL('/api/yadisk' + path, window.location.origin)
+  const url = new URL('/api/yadisk', window.location.origin)
+  url.searchParams.set('ep', path)
   if (opts.params) Object.entries(opts.params).forEach(([k,v]) => url.searchParams.set(k,v))
   const res = await fetch(url, {
     method: method||'GET',
