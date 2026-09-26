@@ -543,11 +543,11 @@ async function loadProject(name) {
     closeProjectsSheet()
     setStatus('Загрузка проекта...')
     const path = projectPath(name)
-    const dlData = await yadisk('GET','/resources/download',{params:{path}})
-    if (!dlData?.href) throw new Error('Яндекс.Диск не вернул ссылку на проект')
-    const res = await fetch(dlData.href)
-    if (!res.ok) throw new Error(`Ошибка загрузки файла: ${res.status}`)
-    const data = await res.json()
+    // Загружаем JSON проекта через наш Vercel-прокси, а не напрямую
+    // по временной ссылке Яндекс.Диска: прямой fetch из браузера
+    // блокируется CORS.
+    const data = await yadisk('GET','/resources/download',{params:{path,proxy:'1'}})
+    if (!data || typeof data !== 'object') throw new Error('Не удалось прочитать файл проекта')
     if (!data || !data.sets) throw new Error('Файл проекта имеет неверный формат')
     sets = {
       '1': Array.isArray(data.sets['1']) ? data.sets['1'] : [],
