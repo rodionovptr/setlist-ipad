@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#d4d0f2">
+<title>Выбор песен для концерта — Пётр Родионов</title>
+<meta name="description" content="Отметьте песни, которые хотите услышать на концерте">
+<meta property="og:title" content="Выбор песен для концерта">
+<meta property="og:description" content="Пётр Родионов — отметьте песни, которые хотите услышать">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:linear-gradient(160deg,#dce8f8 0%,#c8d4f0 25%,#c4c0ec 55%,#d8c8f8 100%);
+  --ink:#1a1a2e; --ink2:#4a4a6a; --ink3:#8a8ab0;
+  --glass:rgba(255,255,255,.5); --line:rgba(255,255,255,.75);
+  --accent:#c02050;
+  --c-pop:linear-gradient(145deg,#f08030,#e85060,#c84080);
+  --c-poprock:linear-gradient(145deg,#9060e0,#6040c8,#4030b0);
+  --c-modern:linear-gradient(145deg,#30b880,#20a0a0,#1880c0);
+  --c-soviet:linear-gradient(145deg,#e03060,#c02050,#901040);
+  --c-extra:linear-gradient(145deg,#4080e0,#3060c8,#2040b0);
+  --t-pop:#c84080; --t-poprock:#5a3cc8; --t-modern:#1a8a9a; --t-soviet:#b02050; --t-extra:#2f5cc4;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+  --display:'Unbounded',system-ui,sans-serif;
+  --body:'Golos Text',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+html{scroll-padding-top:calc(64px + var(--safe-t));-webkit-text-size-adjust:100%}
+body{font-family:var(--body);color:var(--ink);background:var(--bg);background-attachment:fixed;min-height:100vh;line-height:1.45}
+.wrap{max-width:600px;margin:0 auto;padding:0 16px}
+
+/* ── Hero ── */
+.hero{padding:calc(36px + var(--safe-t)) 0 22px}
+.who{font-family:var(--display);font-weight:500;font-size:13px;color:var(--accent);letter-spacing:.02em}
+.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,7vw,36px);line-height:1.12;margin:10px 0 14px;letter-spacing:-.01em}
+.hero p{font-size:16px;color:var(--ink2);max-width:34em}
+.legend{display:grid;gap:8px;margin-top:18px;padding:14px 16px;background:var(--glass);border:1px solid var(--line);border-radius:16px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.legend div{display:flex;gap:10px;align-items:baseline;font-size:14.5px;color:var(--ink2)}
+.legend b{color:var(--ink);font-weight:600;white-space:nowrap}
+
+/* ── Section chips ── */
+.chips{position:sticky;top:0;z-index:5;padding:calc(10px + var(--safe-t)) 0 10px;margin:0 -16px;background:linear-gradient(to bottom,rgba(212,210,242,.92) 70%,rgba(212,210,242,0));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.chips-row{display:flex;gap:8px;overflow-x:auto;padding:0 16px;scrollbar-width:none}
+.chips-row::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;border:none;border-radius:999px;padding:8px 14px;font:600 13.5px var(--body);color:#fff;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.chip span{opacity:.75;font-weight:500;margin-left:4px}
+
+/* ── Sections ── */
+.sec{margin-top:26px}
+.sec h2{font-family:var(--display);font-weight:700;font-size:19px;margin-bottom:12px;display:flex;align-items:baseline;gap:10px}
+.sec h2 small{font-family:var(--body);font-weight:500;font-size:14px;color:var(--ink3)}
+.list{display:grid;gap:10px}
+
+/* ── Song card ── */
+.song{position:relative;border-radius:16px;padding:14px 14px 12px;color:#fff;border:1px solid rgba(255,255,255,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 6px 18px -10px rgba(40,20,90,.45);transition:opacity .2s,filter .2s,transform .15s}
+.song.s-pop{background:var(--c-pop)} .song.s-poprock{background:var(--c-poprock)} .song.s-modern{background:var(--c-modern)} .song.s-soviet{background:var(--c-soviet)} .song.s-extra{background:var(--c-extra)}
+.song-title{font-weight:600;font-size:16.5px;line-height:1.3;text-shadow:0 1px 2px rgba(0,0,0,.18);padding-right:30px}
+.mix-tag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;background:rgba(255,255,255,.22);border-radius:6px;padding:2px 7px;margin-bottom:6px}
+.mix-kids{margin-top:6px;font-size:13.5px;opacity:.9;line-height:1.4}
+.mark{position:absolute;top:12px;right:12px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;background:#fff;opacity:0;transform:scale(.6);transition:all .18s}
+
+/* 3-state control */
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:12px;padding:4px;border-radius:12px;background:rgba(0,0,0,.16)}
+.seg button{border:none;background:transparent;color:rgba(255,255,255,.92);font:600 14px var(--body);padding:10px 4px;border-radius:9px;cursor:pointer;transition:background .15s,color .15s}
+.seg button:focus-visible{outline:2px solid #fff;outline-offset:1px}
+@media (hover:hover){.seg button:hover{background:rgba(255,255,255,.14)}}
+
+/* states */
+.song.st-must{box-shadow:0 0 0 3px #fff,0 10px 26px -10px rgba(40,20,90,.6)}
+.song.st-must .mark{opacity:1;transform:scale(1)}
+.song.st-must .seg [data-v="must"]{background:#fff;color:var(--ink)}
+.song.st-maybe .seg [data-v="maybe"]{background:rgba(255,255,255,.4);color:#fff}
+.song.st-no{opacity:.38;filter:grayscale(.75)}
+.song.st-no .song-title{text-decoration:line-through;text-decoration-thickness:1.5px}
+.song.st-no .seg [data-v="no"]{background:rgba(0,0,0,.35);color:#fff}
+.s-pop .mark{color:var(--t-pop)} .s-poprock .mark{color:var(--t-poprock)} .s-modern .mark{color:var(--t-modern)} .s-soviet .mark{color:var(--t-soviet)} .s-extra .mark{color:var(--t-extra)}
+
+/* ── Bottom bar ── */
+.spacer{height:calc(120px + var(--safe-b))}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:10;padding:12px 16px calc(12px + var(--safe-b));background:rgba(248,246,255,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line)}
+.bar-in{max-width:600px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.counts{flex:1;min-width:0;font-size:14px;color:var(--ink2);line-height:1.35}
+.counts b{color:var(--ink);font-weight:600}
+.counts .nw{white-space:nowrap;margin-right:8px}
+.btn{border:none;border-radius:14px;padding:14px 20px;font:600 15.5px var(--body);cursor:pointer;background:var(--ink);color:#fff;white-space:nowrap}
+.btn:disabled{background:#b8b6d0;cursor:default}
+.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn.ghost{background:rgba(255,255,255,.6);color:var(--ink)}
+
+/* ── Sheet ── */
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(26,26,46,.35);display:none;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.sheet{width:100%;max-width:600px;background:#f7f5ff;border-radius:22px 22px 0 0;padding:22px 18px calc(18px + var(--safe-b));max-height:92vh;overflow:auto;animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
+.sheet h3{font-family:var(--display);font-weight:700;font-size:20px;margin-bottom:6px}
+.sheet .sum{font-size:14.5px;color:var(--ink2);margin-bottom:18px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
+.field label i{font-style:normal;color:var(--accent)}
+.field input,.field textarea{width:100%;font:16px var(--body);color:var(--ink);background:#fff;border:1.5px solid #dcd8f0;border-radius:12px;padding:12px 14px;outline:none}
+.field input:focus,.field textarea:focus{border-color:#8a70e0}
+.field textarea{min-height:92px;resize:vertical}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.sheet-actions{display:flex;gap:10px;margin-top:6px}
+.sheet-actions .btn{flex:1}
+.err{color:var(--accent);font-size:14px;margin:4px 0 10px;min-height:1em}
+
+/* ── States ── */
+.state{text-align:center;padding:60px 10px;color:var(--ink2)}
+.state h2{font-family:var(--display);font-size:22px;color:var(--ink);margin-bottom:10px}
+.state .btn{margin-top:18px}
+.done{display:none;padding:calc(60px + var(--safe-t)) 0 40px;text-align:center}
+.done.show{display:block}
+.done .big{font-size:54px;line-height:1}
+.done h2{font-family:var(--display);font-weight:700;font-size:26px;margin:16px 0 10px}
+.done p{color:var(--ink2);font-size:16px;max-width:28em;margin:0 auto}
+.done .btn{margin-top:24px}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<main id="app" class="wrap">
+  <header class="hero">
+    <div class="who">Пётр Родионов · пианист и вокалист</div>
+    <h1>Соберём программу вашего концерта</h1>
+    <p>Пролистайте репертуар и отметьте песни. Выбор сохраняется на этом устройстве, можно вернуться и закончить позже.</p>
+    <div class="legend">
+      <div><b>Точно надо</b> песня обязательно прозвучит</div>
+      <div><b>Можно</b> на усмотрение Петра, по настроению зала</div>
+      <div><b>Не надо</b> эту песню не играем</div>
+    </div>
+  </header>
+
+  <nav class="chips" id="chips" aria-label="Разделы"><div class="chips-row" id="chips-row"></div></nav>
+  <div id="content"><div class="state">Загружаю репертуар…</div></div>
+  <div class="spacer"></div>
+</main>
+
+<section class="done wrap" id="done" aria-live="polite">
+  <div class="big">🎹</div>
+  <h2>Список у Петра</h2>
+  <p id="done-text">Он свяжется с вами, чтобы обсудить детали.</p>
+  <button class="btn ghost" onclick="backToList()">Изменить выбор</button>
+</section>
+
+<div class="bar" id="bar">
+  <div class="bar-in">
+    <div class="counts" id="counts">Отметьте песни</div>
+    <button class="btn" id="send-btn" onclick="openSheet()" disabled>Отправить Петру</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+  <div class="sheet">
+    <h3 id="sheet-title">Отправить список</h3>
+    <div class="sum" id="sheet-sum"></div>
+    <div class="field">
+      <label for="f-date">Дата концерта <i>*</i></label>
+      <input type="date" id="f-date" required>
+    </div>
+    <div class="field">
+      <label for="f-name">Ваше имя</label>
+      <input type="text" id="f-name" maxlength="80" autocomplete="name" placeholder="Как к вам обращаться">
+    </div>
+    <div class="field">
+      <label for="f-comment">Комментарий</label>
+      <textarea id="f-comment" maxlength="1500" placeholder="Например: первый танец под «…», больше танцевального во втором отделении"></textarea>
+    </div>
+    <div class="hp" aria-hidden="true"><input type="text" id="f-website" tabindex="-1" autocomplete="off"></div>
+    <div class="err" id="err"></div>
+    <div class="sheet-actions">
+      <button class="btn ghost" onclick="closeSheet()">Назад</button>
+      <button class="btn" id="submit-btn" onclick="submitBrief()">Отправить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SECTIONS = [
+  ['pop','Поп хиты'], ['poprock','Поп-рок'], ['modern','Современное'],
+  ['soviet','Советские'], ['extra','Доп (редкие)']
+]
+const STORE = 'brief-choices-v1'
+let songs = []
+let choices = {}
+try { choices = JSON.parse(localStorage.getItem(STORE) || '{}') || {} } catch { choices = {} }
+
+const esc = v => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
+
+async function load() {
+  const box = document.getElementById('content')
+  box.innerHTML = '<div class="state">Загружаю репертуар…</div>'
+  try {
+    const r = await fetch('/api/brief-catalog', { cache: 'no-store' })
+    if (!r.ok) throw new Error()
+    const data = await r.json()
+    songs = data.songs || []
+    // убрать выбор по песням, которых больше нет в репертуаре
+    const ids = new Set(songs.map(s => s.id))
+    Object.keys(choices).forEach(k => { if (!ids.has(k)) delete choices[k] })
+    render()
+  } catch {
+    box.innerHTML = '<div class="state"><h2>Репертуар не загрузился</h2>Проверьте интернет и попробуйте ещё раз.<br><button class="btn" onclick="load()">Обновить</button></div>'
+  }
+}
+
+function render() {
+  let html = '', chips = ''
+  for (const [sec, label] of SECTIONS) {
+    const list = songs.filter(s => s.section === sec)
+    if (!list.length) continue
+    chips += `<button class="chip" style="background:var(--c-${sec})" onclick="jump('${sec}')">${label}<span>${list.length}</span></button>`
+    html += `<section class="sec" id="sec-${sec}"><h2>${label}<small>${list.length}</small></h2><div class="list">`
+    for (const s of list) html += card(s)
+    html += '</div></section>'
+  }
+  document.getElementById('chips-row').innerHTML = chips
+  document.getElementById('content').innerHTML = html || '<div class="state">Список песен пуст</div>'
+  updateBar()
+}
+
+function card(s) {
+  const st = choices[s.id]
+  const kids = s.isMix && s.children?.length ? `<div class="mix-kids">${s.children.map(esc).join(' → ')}</div>` : ''
+  return `<article class="song s-${s.section}${st ? ' st-' + st : ''}" id="song-${esc(s.id)}">
+    <span class="mark" aria-hidden="true">✓</span>
+    ${s.isMix ? '<span class="mix-tag">ПОПУРРИ</span>' : ''}
+    <div class="song-title">${esc(s.isMix ? s.title.replace(/^MIX:\s*/i, '') : s.title)}</div>
+    ${kids}
+    <div class="seg" role="group" aria-label="Выбор для песни">
+      <button data-v="must" aria-pressed="${st==='must'}" onclick="pick('${s.id}','must')">Точно надо</button>
+      <button data-v="maybe" aria-pressed="${st==='maybe'}" onclick="pick('${s.id}','maybe')">Можно</button>
+      <button data-v="no" aria-pressed="${st==='no'}" onclick="pick('${s.id}','no')">Не надо</button>
+    </div>
+  </article>`
+}
+
+function pick(id, v) {
+  // повторное нажатие снимает выбор
+  if (choices[id] === v) delete choices[id]; else choices[id] = v
+  try { localStorage.setItem(STORE, JSON.stringify(choices)) } catch {}
+  const el = document.getElementById('song-' + id)
+  if (el) {
+    el.classList.remove('st-must', 'st-maybe', 'st-no')
+    if (choices[id]) el.classList.add('st-' + choices[id])
+    el.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === choices[id])))
+  }
+  updateBar()
+}
+
+function tally() {
+  const t = { must: 0, maybe: 0, no: 0 }
+  songs.forEach(s => { const v = choices[s.id]; if (v) t[v]++ })
+  t.left = songs.length - t.must - t.maybe - t.no
+  return t
+}
+
+function updateBar() {
+  const t = tally()
+  const any = t.must + t.maybe + t.no
+  document.getElementById('counts').innerHTML = any
+    ? `<span class="nw">Точно <b>${t.must}</b></span> <span class="nw">Можно <b>${t.maybe}</b></span> <span class="nw">Не надо <b>${t.no}</b></span><br><span class="nw">Не отмечено: ${t.left}</span>`
+    : 'Отметьте песни, которые хотите услышать'
+  document.getElementById('send-btn').disabled = !(t.must + t.maybe)
+}
+
+function jump(sec) {
+  document.getElementById('sec-' + sec)?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+}
+
+function openSheet() {
+  const t = tally()
+  document.getElementById('sheet-sum').textContent =
+    `Точно надо: ${t.must}, можно: ${t.maybe}, не надо: ${t.no}.` + (t.left ? ` Неотмеченные ${t.left} Пётр подберёт сам.` : '')
+  const d = document.getElementById('f-date')
+  d.min = new Date().toISOString().slice(0, 10)
+  document.getElementById('err').textContent = ''
+  document.getElementById('overlay').classList.add('open')
+  setTimeout(() => d.focus(), 60)
+}
+function closeSheet() { document.getElementById('overlay').classList.remove('open') }
+document.getElementById('overlay').addEventListener('click', e => { if (e.target.id === 'overlay') closeSheet() })
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet() })
+document.getElementById('f-date').addEventListener('input', () => { document.getElementById('err').textContent = '' })
+
+async function submitBrief() {
+  const date = document.getElementById('f-date').value
+  const err = document.getElementById('err')
+  if (!date) { err.textContent = 'Укажите дату концерта'; document.getElementById('f-date').focus(); return }
+  const btn = document.getElementById('submit-btn')
+  btn.disabled = true; btn.textContent = 'Отправляю…'; err.textContent = ''
+  try {
+    const r = await fetch('/api/brief-submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        date,
+        name: document.getElementById('f-name').value,
+        comment: document.getElementById('f-comment').value,
+        website: document.getElementById('f-website').value,
+        choices
+      })
+    })
+    const data = await r.json().catch(() => ({}))
+    if (!r.ok || !data.ok) throw new Error(data.error || 'Не удалось отправить. Попробуйте ещё раз.')
+    closeSheet()
+    const [y, m, d] = date.split('-')
+    document.getElementById('done-text').textContent = `Концерт ${d}.${m}.${y}. Пётр получил ваш список и свяжется с вами, чтобы обсудить детали.`
+    document.getElementById('app').style.display = 'none'
+    document.getElementById('bar').style.display = 'none'
+    document.getElementById('done').classList.add('show')
+    window.scrollTo(0, 0)
+  } catch (e) {
+    err.textContent = e.message
+  } finally {
+    btn.disabled = false; btn.textContent = 'Отправить'
+  }
+}
+
+function backToList() {
+  document.getElementById('done').classList.remove('show')
+  document.getElementById('app').style.display = ''
+  document.getElementById('bar').style.display = ''
+}
+
+load()
+</script>
+</body>
+</html>
