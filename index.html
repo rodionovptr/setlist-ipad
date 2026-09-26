@@ -702,6 +702,14 @@ function renderZone(z) {
         ev.dataTransfer.setData('text/plain',s.mixParentId)
         requestAnimationFrame(()=>hdr.classList.add('dragging-src'))
       })
+      hdr.addEventListener('dragover',ev=>{
+        ev.preventDefault();
+        ev.stopPropagation();
+        if(!dragGroup || dragId===null) return;
+        const r=hdr.getBoundingClientRect();
+        // Top half = before this MIX, bottom half = after this MIX block.
+        dragOverIdx = ev.clientY < r.top + r.height/2 ? i : j;
+      })
       hdr.addEventListener('dragend',()=>{
         hdr.classList.remove('dragging-src')
         dragGroup=false
@@ -805,7 +813,10 @@ function zDrop(e,zone) {
   } else if(dragGroup) {
     saveHistory()
     const start=dragFromIdx, end=dragGroupEnd
-    if(dragFrom===zone && at>=start && at<=end){
+    // Dropping inside the group's own range means no movement.
+    // The exact end index is also the insertion point immediately after
+    // the group, so it must NOT be treated as an inside-drop.
+    if(dragFrom===zone && at>start && at<end){
       dragId=null; dragFrom=null; dragFromIdx=null; dragOverIdx=null; dragGroup=false; dragGroupEnd=null
       return
     }
