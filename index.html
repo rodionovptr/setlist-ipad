@@ -784,7 +784,7 @@ function lDragEnd(e) { e.currentTarget.classList.remove('dragging-src') }
 // ── DROP ZONES ────────────────────────────────────────
 function zOver(e,zone) {
   e.preventDefault()
-  e.dataTransfer.dropEffect='copy'
+  e.dataTransfer.dropEffect=(dragGroup?'move':'copy')
   document.getElementById('zone-'+zone).classList.add('over')
   dragOverIdx=getInsertIdx(e,zone)
 }
@@ -833,12 +833,42 @@ function zDrop(e,zone) {
 }
 
 function getInsertIdx(e,zone) {
-  const cards=[...document.getElementById('zone-'+zone).querySelectorAll('.set-item')]
-  for(let i=0;i<cards.length;i++){
-    const r=cards[i].getBoundingClientRect()
-    if(e.clientY<r.top+r.height/2) return parseInt(cards[i].dataset.idx)
+  const el=document.getElementById('zone-'+zone)
+  const list=sets[zone]
+  const y=e.clientY
+
+  // Treat every MIX and all of its children as one logical block.
+  // This is important when a MIX is being dragged: dropping over one of
+  // its child rows must never produce an insertion point inside the MIX.
+  let i=0
+  while(i<list.length){
+    const s=list[i]
+    if(s.isMixChild){
+      const parent=s.mixParentId
+      let j=i
+      while(j<list.length && list[j].isMixChild && list[j].mixParentId===parent) j++
+      const rows=[...el.querySelectorAll('.set-item')].filter(card=>{
+        const idx=parseInt(card.dataset.idx,10)
+        return idx>=i && idx<j
+      })
+      if(rows.length){
+        const first=rows[0].getBoundingClientRect()
+        const last=rows[rows.length-1].getBoundingClientRect()
+        const mid=(first.top+last.bottom)/2
+        if(y<mid) return i
+        if(y<=last.bottom) return j
+      }
+      i=j
+    } else {
+      const card=el.querySelector(`.set-item[data-idx="${i}"]`)
+      if(card){
+        const r=card.getBoundingClientRect()
+        if(y<r.top+r.height/2) return i
+      }
+      i++
+    }
   }
-  return sets[zone].length
+  return list.length
 }
 
 // ── REMOVE ────────────────────────────────────────────
