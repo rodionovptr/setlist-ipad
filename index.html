@@ -87,6 +87,7 @@ body{font-family:'Golos Text',sans-serif;background:var(--bg);color:var(--text);
 
 .mix-head{border-radius:7px;padding:8px 10px;border:1px solid rgba(255,255,255,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.4);display:flex;align-items:center;gap:6px;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-user-drag:element;touch-action:auto;transition:opacity .15s}
 .mix-head .s-title{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.25;min-width:0}
+.mix-grp-hdr > span{pointer-events:none;-webkit-user-select:none;user-select:none}
 .mix-head{min-height:42px;align-items:flex-start}
 .mix-head .mix-badge,.mix-head .s-add{margin-top:2px}
 .mix-head:hover{opacity:.9}
@@ -705,10 +706,21 @@ function renderZone(z) {
       hdr.addEventListener('dragover',ev=>{
         ev.preventDefault();
         ev.stopPropagation();
-        if(!dragGroup || dragId===null) return;
+        if(dragId===null) return;
         const r=hdr.getBoundingClientRect();
-        // Top half = before this MIX, bottom half = after this MIX block.
+        // The whole MIX header is a drop target. For a MIX dragged as a
+        // group, choose before/after the entire block. For a normal song
+        // dragged onto the header, use the same insertion point.
         dragOverIdx = ev.clientY < r.top + r.height/2 ? i : j;
+        ev.dataTransfer.dropEffect = dragGroup ? 'move' : 'copy';
+      })
+      hdr.addEventListener('drop',ev=>{
+        ev.preventDefault();
+        ev.stopPropagation();
+        if(dragId===null) return;
+        const r=hdr.getBoundingClientRect();
+        dragOverIdx = ev.clientY < r.top + r.height/2 ? i : j;
+        zDrop(ev,z);
       })
       hdr.addEventListener('dragend',()=>{
         hdr.classList.remove('dragging-src')
