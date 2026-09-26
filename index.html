@@ -340,7 +340,7 @@ const EXPORT_DIR = '/Сет-листы/Экспорт'
 const SEC_LABELS = {pop:'Поп хиты',poprock:'Поп-рок',modern:'Современное',soviet:'Советские',extra:'Доп (редкие)'}
 
 let songs=[], sets={'1':[],'2':[],'x':[]}, history=[]
-let dragId=null, dragFrom=null, dragFromIdx=null, dragOverIdx=null, dragOverZone=null, dragGroup=false, dragGroupEnd=null, dragDropHandled=false, dragGroupDropHandled=false, dragLastY=null, dragLastX=null
+let dragId=null, dragFrom=null, dragFromIdx=null, dragOverIdx=null, dragOverZone=null, dragGroup=false, dragGroupEnd=null, dragDropHandled=false, dragGroupDropHandled=false, dragLastY=null, dragLastX=null, dragChild=false
 
 // ── YANDEX DISK API via proxy ──────────────────────────
 async function yadisk(method, path, opts={}) {
@@ -706,6 +706,7 @@ function renderZone(z) {
         dragLastY=ev.clientY; dragLastX=ev.clientX;
         const r=hdr.getBoundingClientRect();
         dragOverIdx = ev.clientY < r.top + r.height/2 ? start : end;
+        if(dragChild) showDropLine(z, linkedDropTarget(z,ev.clientY).at)
         ev.dataTransfer.dropEffect = dragGroup ? 'move' : 'copy';
       })
       hdr.addEventListener('drop',ev=>{
@@ -718,7 +719,10 @@ function renderZone(z) {
       })
       hdr.addEventListener('dragend',()=>endGroupDrag(hdr))
       el.appendChild(hdr)
-      for(let k=start;k<end;k++) el.appendChild(makeSetItem(list[k],k,z,{start,end,parentId:s.mixParentId}))
+      for(let k=start;k<end;k++){
+        if(k>start) el.appendChild(mkLine(z,k))
+        el.appendChild(makeSetItem(list[k],k,z,true))
+      }
       el.appendChild(mkLine(z,j))
       i=j
     } else {
@@ -731,7 +735,7 @@ function renderZone(z) {
 }
 
 function startGroupDrag(ev,el,z,start,end,parentId){
-  dragId=parentId; dragFrom=z; dragFromIdx=start; dragGroup=true
+  dragId=parentId; dragFrom=z; dragFromIdx=start; dragGroup=true; dragChild=false
   dragGroupEnd=end; dragGroupDropHandled=false; dragDropHandled=false
   ev.dataTransfer.effectAllowed='move'
   ev.dataTransfer.setData('text/plain',parentId)
@@ -748,31 +752,41 @@ function endGroupDrag(el){
   dragId=null; dragFrom=null; dragFromIdx=null; dragOverIdx=null; dragOverZone=null; dragGroup=false; dragGroupEnd=null; dragDropHandled=false; dragGroupDropHandled=false; dragLastY=null; dragLastX=null
 }
 
-function makeSetItem(s,i,z,grp) {
+function makeSetItem(s,i,z,inMix) {
   const card=document.createElement('div')
-  card.className=`set-item s-${s.section}${grp?' is-mix':''}`
+  card.className=`set-item s-${s.section}${inMix?' is-mix':''}`
   card.draggable=true
   card.dataset.idx=i
   card.innerHTML=`<span class="set-grip">⠿</span><span class="set-num">${i+1}</span><span class="set-title">${s.title}</span><button class="set-rm" onclick="removeItem('${z}',${i})">×</button>`
-  if(grp){
-    // Песня внутри MIX тащит за собой весь MIX целиком
-    card.addEventListener('dragstart',ev=>startGroupDrag(ev,card,z,grp.start,grp.end,grp.parentId))
-    card.addEventListener('dragend',()=>endGroupDrag(card))
-  } else {
-    card.addEventListener('dragstart',ev=>{
-      dragId=s.id; dragFrom=z; dragFromIdx=i; dragGroup=false; dragGroupEnd=null
-      ev.dataTransfer.effectAllowed='all'
-      ev.dataTransfer.setData('text/plain',s.id)
-      requestAnimationFrame(()=>card.classList.add('dragging-src'))
-    })
-    card.addEventListener('dragend',()=>card.classList.remove('dragging-src'))
-  }
+  // Песня, связанная с мэшапом (внутри него или вынутая из него),
+  // перемещается по drop, а не «живой» сортировкой — чтобы можно было
+  // решать, внутрь мэшапа её ставить или отдельно.
+  const linked=!!s.mixParentId
+  card.addEventListener('dragstart',ev=>{
+    dragId=s.id; dragFrom=z; dragFromIdx=i; dragGroup=false; dragGroupEnd=null
+    dragChild=linked; dragDropHandled=false; dragOverZone=null
+    ev.dataTransfer.effectAllowed='all'
+    ev.dataTransfer.setData('text/plain',s.id)
+    requestAnimationFrame(()=>card.classList.add('dragging-src'))
+  })
+  card.addEventListener('dragend',()=>{
+    card.classList.remove('dragging-src')
+    if(dragChild && !dragDropHandled && dragOverZone && dragLastY!==null){
+      moveLinkedItem(dragOverZone, dragLastY)
+    }
+    if(dragChild) resetDrag()
+    clearDropLines()
+  })
   card.addEventListener('dragover',ev=>{
     ev.preventDefault(); ev.stopPropagation()
     if(dragId===null) return
     dragOverZone=z;
     dragLastY=ev.clientY; dragLastX=ev.clientX
-    // Точка вставки с учётом MIX-блоков: внутрь чужого MIX не вставляем
+    if(dragChild){
+      showDropLine(z, linkedDropTarget(z,ev.clientY).at)
+      return
+    }
+    // Точка вставки с учётом MIX-блоков: внутрь MIX обычную песню не вставляем
     const target=getInsertIdxAtY(z,ev.clientY)
     if(dragFrom!==z || dragGroup){
       dragOverIdx=target
@@ -788,6 +802,66 @@ function makeSetItem(s,i,z,grp) {
   return card
 }
 
+function resetDrag(){
+  dragId=null; dragFrom=null; dragFromIdx=null; dragOverIdx=null; dragOverZone=null; dragGroup=false; dragGroupEnd=null; dragDropHandled=false; dragGroupDropHandled=false; dragLastY=null; dragLastX=null; dragChild=false
+}
+
+// Куда уронить песню из мэшапа: если курсор над «своим» мэшапом —
+// вставка между его песнями; иначе — как обычная песня между блоками.
+function linkedDropTarget(zone,y){
+  const item=sets[dragFrom]?.[dragFromIdx]
+  const pid=item?.mixParentId
+  const list=sets[zone], el=document.getElementById('zone-'+zone)
+  let start=-1,end=-1
+  for(let k=0;k<list.length;k++){
+    if(list[k].isMixChild && list[k].mixParentId===pid){
+      start=k; end=k
+      while(end<list.length && list[end].isMixChild && list[end].mixParentId===pid) end++
+      break
+    }
+  }
+  if(start>=0){
+    const hdr=el.querySelector(`.mix-grp-hdr[data-start="${start}"]`)
+    const last=el.querySelector(`.set-item[data-idx="${end-1}"]`)
+    if(hdr && last){
+      const top=hdr.getBoundingClientRect().top, bottom=last.getBoundingClientRect().bottom
+      if(y>=top && y<=bottom){
+        let at=end
+        for(let k=start;k<end;k++){
+          const r=el.querySelector(`.set-item[data-idx="${k}"]`).getBoundingClientRect()
+          if(y<r.top+r.height/2){at=k;break}
+        }
+        return {at,inside:true}
+      }
+    }
+  }
+  return {at:getInsertIdxAtY(zone,y),inside:false}
+}
+
+function moveLinkedItem(zone,y){
+  if(dragFrom===null || dragFrom==='left' || dragFromIdx===null) return
+  const {at,inside}=linkedDropTarget(zone,y)
+  saveHistory()
+  const item=sets[dragFrom].splice(dragFromIdx,1)[0]
+  const ins=(dragFrom===zone && dragFromIdx<at)?at-1:at
+  // Внутри своего мэшапа — часть мэшапа; снаружи — отдельная песня
+  // (mixParentId сохраняем, чтобы мэшап оставался «использованным»
+  // в библиотеке и песню можно было вернуть обратно в него).
+  item.isMixChild=inside
+  sets[zone].splice(Math.max(0,Math.min(ins,sets[zone].length)),0,item)
+  dragDropHandled=true
+  renderAll()
+}
+
+function showDropLine(zone,idx){
+  document.querySelectorAll('.drop-line.show').forEach(l=>l.classList.remove('show'))
+  const l=document.querySelector(`#zone-${zone} .drop-line[data-idx="${idx}"]`)
+  if(l) l.classList.add('show')
+}
+function clearDropLines(){
+  document.querySelectorAll('.drop-line.show').forEach(l=>l.classList.remove('show'))
+}
+
 function mkLine(z,idx) {
   const l=document.createElement('div')
   l.className='drop-line'; l.dataset.idx=idx; return l
@@ -799,7 +873,7 @@ function updateCounts() {
 
 // ── DRAG FROM LIBRARY ─────────────────────────────────
 function lDragStart(e,id) {
-  dragId=id; dragFrom='left'; dragFromIdx=null; dragOverZone=null; dragDropHandled=false; dragLastY=null; dragLastX=null
+  dragId=id; dragFrom='left'; dragFromIdx=null; dragChild=false; dragGroup=false; dragOverZone=null; dragDropHandled=false; dragLastY=null; dragLastX=null
   e.dataTransfer.effectAllowed='copy'
   e.dataTransfer.setData('text/plain',id)
   const el=e.currentTarget
@@ -836,6 +910,7 @@ function zOver(e,zone) {
   e.dataTransfer.dropEffect=(dragGroup?'move':'copy')
   document.getElementById('zone-'+zone).classList.add('over')
   dragOverIdx=getInsertIdx(e,zone)
+  if(dragChild) showDropLine(zone, linkedDropTarget(zone,e.clientY).at)
 }
 function zLeave(e,zone) {
   if(!document.getElementById('zone-'+zone).contains(e.relatedTarget))
@@ -848,6 +923,11 @@ function zDrop(e,zone) {
   dragDropHandled=true
   document.getElementById('zone-'+zone).classList.remove('over')
   if(!dragId) return
+  if(dragChild){
+    moveLinkedItem(zone,e.clientY)
+    resetDrag()
+    return
+  }
   const at=dragOverIdx!==null?dragOverIdx:sets[zone].length
 
   if(dragFrom==='left') {
