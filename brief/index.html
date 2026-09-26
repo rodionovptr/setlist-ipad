@@ -37,6 +37,7 @@ body{font-family:var(--body);color:var(--ink);background:var(--bg);background-at
 .who{font-family:var(--display);font-weight:500;font-size:13px;color:var(--accent);letter-spacing:.02em}
 .hero h1{font-family:var(--display);font-weight:700;font-size:clamp(21px,5.6vw,28px);line-height:1.15;margin:8px 0 10px;letter-spacing:-.01em}
 .hero p{font-size:14.5px;color:var(--ink2);max-width:34em}
+.hero p.note{font-size:13px;color:var(--ink3);margin-top:6px}
 .legend{display:grid;gap:6px;margin-top:14px;padding:10px 12px;background:var(--glass);border:1px solid var(--line);border-radius:12px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .legend div{display:flex;gap:10px;align-items:center;font-size:13.5px;color:var(--ink2)}
 .legend .ic{width:26px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:12px;font-weight:700;flex-shrink:0;color:#fff}
@@ -136,7 +137,8 @@ body{font-family:var(--body);color:var(--ink);background:var(--bg);background-at
   <header class="hero">
     <div class="who">Пётр Родионов · пианист и вокалист</div>
     <h1>Соберём программу вашего концерта</h1>
-    <p>Отметьте песни, которые хотите услышать. Когда закончите, нажмите «Отправить Петру» в конце списка: Пётр получит ваш выбор и составит программу концерта с учётом ваших пожеланий. Отметки сохраняются на этом устройстве, так что можно прерваться и вернуться позже.</p>
+    <p>Отметьте песни, которые хотите услышать на своём мероприятии. В конце нажмите «Отправить» и укажите дату события. Ваши пожелания будут учтены при составлении программы.</p>
+    <p class="note">Выбор сохраняется на этом устройстве, поэтому можно прерваться и вернуться позже.</p>
     <div class="legend">
       <div><span class="ic m">!</span><span><b>Точно надо</b> — песня обязательно прозвучит</span></div>
       <div><span class="ic y">ок</span><span><b>Можно</b> — на усмотрение Петра, по настроению зала</span></div>
@@ -149,7 +151,7 @@ body{font-family:var(--body);color:var(--ink);background:var(--bg);background-at
   <div class="finish" id="finish" hidden>
     <h2>Всё отметили?</h2>
     <p id="finish-sum">Неотмеченные песни Пётр подберёт сам.</p>
-    <button class="btn" id="finish-btn" onclick="openSheet()" disabled>Отправить Петру</button>
+    <button class="btn" id="finish-btn" onclick="openSheet()" disabled>Отправить</button>
   </div>
   <div class="spacer"></div>
 </main>
@@ -164,7 +166,7 @@ body{font-family:var(--body);color:var(--ink);background:var(--bg);background-at
 <div class="bar" id="bar">
   <div class="bar-in">
     <div class="counts" id="counts">Отметьте песни</div>
-    <button class="btn" id="send-btn" onclick="openSheet()" disabled>Отправить Петру</button>
+    <button class="btn" id="send-btn" onclick="openSheet()" disabled>Отправить</button>
   </div>
 </div>
 
@@ -173,7 +175,7 @@ body{font-family:var(--body);color:var(--ink);background:var(--bg);background-at
     <h3 id="sheet-title">Отправить список</h3>
     <div class="sum" id="sheet-sum"></div>
     <div class="field">
-      <label for="f-date">Дата концерта <i>*</i></label>
+      <label for="f-date">Дата события <i>*</i></label>
       <input type="date" id="f-date" required>
     </div>
     <div class="field">
@@ -228,7 +230,7 @@ function render() {
     const list = songs.filter(s => s.section === sec)
     if (!list.length) continue
     chips += `<button class="chip" style="background:var(--c-${sec})" onclick="jump('${sec}')">${label}<span>${list.length}</span></button>`
-    html += `<section class="sec" id="sec-${sec}"><div class="sec-hd"><h2>${label}<small>${list.length}</small></h2><div class="cols" aria-hidden="true"><span>Надо</span><span>Можно</span><span>Нет</span></div></div><div class="list">`
+    html += `<section class="sec" id="sec-${sec}"><div class="sec-hd"><h2>${label}<small>${list.length}</small></h2><div class="cols" aria-hidden="true"><span>Нет</span><span>Можно</span><span>Надо</span></div></div><div class="list">`
     for (const s of list) html += card(s)
     html += '</div></section>'
   }
@@ -247,9 +249,9 @@ function card(s) {
       ${kids}
     </div>
     <div class="seg" role="group" aria-label="${title}">
-      <button data-v="must" title="Надо" aria-label="Надо" aria-pressed="${st==='must'}" onclick="pick('${s.id}','must')">!</button>
-      <button data-v="maybe" title="Можно" aria-label="Можно" aria-pressed="${st==='maybe'}" onclick="pick('${s.id}','maybe')"><span class="ok">ок</span></button>
       <button data-v="no" title="Нет" aria-label="Нет" aria-pressed="${st==='no'}" onclick="pick('${s.id}','no')">✕</button>
+      <button data-v="maybe" title="Можно" aria-label="Можно" aria-pressed="${st==='maybe'}" onclick="pick('${s.id}','maybe')"><span class="ok">ок</span></button>
+      <button data-v="must" title="Надо" aria-label="Надо" aria-pressed="${st==='must'}" onclick="pick('${s.id}','must')">!</button>
     </div>
   </div>`
 }
@@ -310,7 +312,7 @@ document.getElementById('f-date').addEventListener('input', () => { document.get
 async function submitBrief() {
   const date = document.getElementById('f-date').value
   const err = document.getElementById('err')
-  if (!date) { err.textContent = 'Укажите дату концерта'; document.getElementById('f-date').focus(); return }
+  if (!date) { err.textContent = 'Укажите дату события'; document.getElementById('f-date').focus(); return }
   const btn = document.getElementById('submit-btn')
   btn.disabled = true; btn.textContent = 'Отправляю…'; err.textContent = ''
   try {
@@ -329,7 +331,7 @@ async function submitBrief() {
     if (!r.ok || !data.ok) throw new Error(data.error || 'Не удалось отправить. Попробуйте ещё раз.')
     closeSheet()
     const [y, m, d] = date.split('-')
-    document.getElementById('done-text').textContent = `Концерт ${d}.${m}.${y}. Пётр получил ваш список и свяжется с вами, чтобы обсудить детали.`
+    document.getElementById('done-text').textContent = `Дата события: ${d}.${m}.${y}. Ваши пожелания будут учтены при составлении программы.`
     document.getElementById('app').style.display = 'none'
     document.getElementById('bar').style.display = 'none'
     document.getElementById('done').classList.add('show')
