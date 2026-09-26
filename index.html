@@ -152,6 +152,7 @@ body{font-family:'Golos Text',sans-serif;background:var(--bg);color:var(--text);
 .sbtn.cancel{background:rgba(255,255,255,.6);color:var(--text2);border:1px solid rgba(200,200,220,.5)}
 .sbtn.confirm{background:linear-gradient(135deg,#e03060,#b02040);color:#fff}
 
+ .project-list{max-height:320px;overflow:auto;margin-bottom:4px}.project-item{width:100%;display:flex;align-items:center;gap:9px;padding:11px 10px;margin-bottom:6px;border:1px solid rgba(200,200,220,.45);border-radius:10px;background:rgba(255,255,255,.55);color:var(--text);font:600 13px 'Golos Text',sans-serif;cursor:pointer;text-align:left}.project-item:hover{background:rgba(255,255,255,.85)}.project-item-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.project-open{font-size:10px;color:var(--text3)}.project-empty{padding:24px 8px;text-align:center;color:var(--text3);font-size:13px}
 /* TOAST */
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:rgba(240,240,255,.96);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.8);border-radius:12px;padding:10px 18px;font-size:13px;font-weight:600;color:var(--text);z-index:300;white-space:nowrap;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
@@ -193,10 +194,10 @@ body{font-family:'Golos Text',sans-serif;background:var(--bg);color:var(--text);
       <div class="l-label">Новый сет-лист</div>
       <div class="l-hint">Начать с чистого листа</div>
     </button>
-    <button class="l-btn" onclick="loadFromDisk()">
+    <button class="l-btn" onclick="openProjectsSheet()">
       <div class="l-icon">📂</div>
-      <div class="l-label">Открыть последний</div>
-      <div class="l-hint">Загрузить с Яндекс.Диска</div>
+      <div class="l-label">Открыть проект</div>
+      <div class="l-hint">Выбрать сохранённый сет-лист</div>
     </button>
   </div>
 </div>
@@ -210,7 +211,8 @@ body{font-family:'Golos Text',sans-serif;background:var(--bg);color:var(--text);
   <div class="h-sp"></div>
   <span class="h-sync" id="sync-status"></span>
   <button class="h-btn" onclick="syncSongs()" title="Синхронизировать с Яндекс.Диском">🔄</button>
-  <button class="h-btn" onclick="saveToDisk()" title="Сохранить на Яндекс.Диск">💾</button>
+  <button class="h-btn" onclick="openProjectsSheet()" title="Открыть проект">📂</button>
+  <button class="h-btn" onclick="saveAsProject()" title="Сохранить проект как">💾</button>
   <button class="h-btn primary" onclick="doExport()">Экспорт →</button>
 </div>
 
@@ -304,6 +306,31 @@ body{font-family:'Golos Text',sans-serif;background:var(--bg);color:var(--text);
   </div>
 </div>
 
+<!-- Project manager -->
+<div class="overlay" id="project-overlay">
+  <div class="sheet project-sheet">
+    <div class="sh-title">Открыть проект</div>
+    <div class="project-list" id="project-list"></div>
+    <div class="sh-row" style="margin-top:12px">
+      <button class="sbtn cancel" onclick="closeProjectsSheet()">Закрыть</button>
+      <button class="sbtn confirm" onclick="closeProjectsSheet();openProjectSaveSheet()">Сохранить как…</button>
+    </div>
+  </div>
+</div>
+
+<!-- Save project as -->
+<div class="overlay" id="project-save-overlay">
+  <div class="sheet">
+    <div class="sh-title">Сохранить проект</div>
+    <div class="sh-lbl">Название проекта</div>
+    <input class="sh-input" id="project-name-input" placeholder="Например: Москва 26 сентября">
+    <div class="sh-row">
+      <button class="sbtn cancel" onclick="closeProjectSaveSheet()">Отмена</button>
+      <button class="sbtn confirm" onclick="saveNamedProject()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
 <!-- Progress -->
 <div class="prog-overlay" id="prog-overlay">
   <div class="prog-box">
@@ -317,7 +344,9 @@ body{font-family:'Golos Text',sans-serif;background:var(--bg);color:var(--text);
 
 <script>
 const SONGS_DIR = '/2026/ТЕКСТЫ КОНЦЕРТОВ/ВСЕ ПЕСНИ 2026'
-const PROJECT_FILE = '/Сет-листы/setlist_data.json'
+const PROJECT_DIR = '/Сет-листы'
+let currentProjectName = ''
+let currentProjectFile = ''
 const EXPORT_DIR = '/Сет-листы/Экспорт'
 const SEC_LABELS = {pop:'Поп хиты',poprock:'Поп-рок',modern:'Современное',soviet:'Советские',extra:'Доп (редкие)'}
 
@@ -354,7 +383,9 @@ async function getDownloadUrl(path) {
 }
 async function uploadJSON(path, data) {
   const up = await yadisk('GET','/resources/upload',{params:{path,overwrite:'true'}})
-  await fetch(up.href,{method:'PUT',body:new Blob([JSON.stringify(data,null,2)],{type:'application/json'})})
+  if (!up?.href) throw new Error('Яндекс.Диск не вернул URL для загрузки')
+  const res = await fetch(up.href,{method:'PUT',body:new Blob([JSON.stringify(data,null,2)],{type:'application/json'})})
+  if (!res.ok) throw new Error(`Ошибка сохранения файла: ${res.status}`)
 }
 async function uploadText(path, text, contentType='text/plain') {
   const up = await yadisk('GET','/resources/upload',{params:{path,overwrite:'true'}})
@@ -458,12 +489,6 @@ async function init() {
     await yadisk('GET','/')
     setStatus('Загрузка данных...')
     await ensureDir('/Сет-листы')
-    // Load last setlist
-    try {
-      const dlData = await yadisk('GET', '/resources/download', {params:{path:PROJECT_FILE}})
-      const data = await (await fetch(dlData.href)).json()
-      if (data.sets) sets = data.sets
-    } catch(e) {}
     setStatus(''); showLoaderBtns()
   } catch(e) {
     setStatus('Ошибка: '+e.message); showLoaderBtns()
@@ -486,8 +511,90 @@ async function scanSongsFolder() {
 function setStatus(msg) { document.getElementById('l-status').textContent=msg }
 function showLoaderBtns() { document.getElementById('l-btns').style.display='flex' }
 
-function startNew() { sets={'1':[],'2':[],'x':[]}; closeLoader(); renderAll() }
-function loadFromDisk() { closeLoader(); renderAll(); toast('ok','Данные загружены') }
+function startNew() {
+  sets={'1':[],'2':[],'x':[]}
+  currentProjectName=''
+  currentProjectFile=''
+  closeLoader()
+  renderAll()
+}
+
+function projectSafeName(name) {
+  return String(name || '')
+    .trim()
+    .replace(/[<>:"/\\|?*]/g,'')
+    .replace(/\.json$/i,'')
+    .trim()
+}
+
+function projectPath(name) {
+  return `${PROJECT_DIR}/${projectSafeName(name)}.json`
+}
+
+async function listProjects() {
+  const items = await listDir(PROJECT_DIR)
+  return items
+    .filter(x => x.type === 'file' && /\.json$/i.test(x.name))
+    .sort((a,b) => String(b.modified||'').localeCompare(String(a.modified||'')) || a.name.localeCompare(b.name,'ru'))
+}
+
+async function openProjectsSheet() {
+  try {
+    const projects = await listProjects()
+    const box = document.getElementById('project-list')
+    if (!projects.length) {
+      box.innerHTML = '<div class="project-empty">Сохранённых проектов пока нет</div>'
+    } else {
+      box.innerHTML = projects.map((p,i) => {
+        const name = p.name.replace(/\.json$/i,'')
+        const safe = name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")
+        return `<button class="project-item" onclick="loadProject('${safe}')"><span>📄</span><span class="project-item-name">${escapeHtml(name)}</span><span class="project-open">Открыть</span></button>`
+      }).join('')
+    }
+    document.getElementById('project-overlay').classList.add('open')
+  } catch(e) {
+    toast('err','Ошибка списка проектов: '+e.message)
+  }
+}
+
+function closeProjectsSheet() { document.getElementById('project-overlay').classList.remove('open') }
+
+function escapeHtml(v) {
+  return String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
+}
+
+async function loadProject(name) {
+  try {
+    closeProjectsSheet()
+    setStatus('Загрузка проекта...')
+    const path = projectPath(name)
+    const dlData = await yadisk('GET','/resources/download',{params:{path}})
+    if (!dlData?.href) throw new Error('Яндекс.Диск не вернул ссылку на проект')
+    const res = await fetch(dlData.href)
+    if (!res.ok) throw new Error(`Ошибка загрузки файла: ${res.status}`)
+    const data = await res.json()
+    if (!data || !data.sets) throw new Error('Файл проекта имеет неверный формат')
+    sets = {
+      '1': Array.isArray(data.sets['1']) ? data.sets['1'] : [],
+      '2': Array.isArray(data.sets['2']) ? data.sets['2'] : [],
+      'x': Array.isArray(data.sets.x) ? data.sets.x : []
+    }
+    if (Array.isArray(data.songs) && data.songs.length) songs = data.songs
+    currentProjectName = projectSafeName(name)
+    currentProjectFile = path
+    closeLoader()
+    renderAll()
+    toast('ok','Загружен проект: '+currentProjectName)
+  } catch(e) {
+    setStatus('')
+    toast('err','Ошибка загрузки: '+e.message)
+  }
+}
+
+async function loadFromDisk() {
+  return openProjectsSheet()
+}
+
 function closeLoader() {
   const l=document.getElementById('loader')
   l.style.opacity='0'; l.style.transition='opacity .25s'
@@ -496,20 +603,60 @@ function closeLoader() {
 
 async function syncSongs() {
   setSyncStatus('🔄')
-  try { await scanSongsFolder(); await saveData(); renderLib(); setSyncStatus('✓') }
+  try { await scanSongsFolder(); renderLib(); setSyncStatus('✓'); toast('ok','Каталог обновлён') }
   catch(e) { setSyncStatus('✗'); toast('err','Ошибка синхронизации') }
   setTimeout(()=>setSyncStatus(''),2000)
 }
 async function saveToDisk() {
+  if (!currentProjectName) return saveAsProject()
   setSyncStatus('💾')
-  try { await saveData(); setSyncStatus('✓'); toast('ok','Сохранено на Яндекс.Диск') }
-  catch(e) { setSyncStatus('✗'); toast('err','Ошибка: '+e.message) }
+  try {
+    await saveData()
+    setSyncStatus('✓')
+    toast('ok','Сохранено: '+currentProjectName)
+  } catch(e) {
+    setSyncStatus('✗')
+    toast('err','Ошибка: '+e.message)
+  }
   setTimeout(()=>setSyncStatus(''),2000)
 }
+
 function setSyncStatus(s) { document.getElementById('sync-status').textContent=s }
-async function saveData() {
-  await uploadJSON(PROJECT_FILE,{songs,sets,savedAt:new Date().toISOString()})
+
+async function saveAsProject() {
+  const name = projectSafeName(document.getElementById('project-name-input')?.value || '')
+  if (!name) { openProjectSaveSheet(); return }
+  if (name === 'Экспорт') { toast('err','Это имя зарезервировано'); return }
+  currentProjectName = name
+  currentProjectFile = projectPath(name)
+  try {
+    setSyncStatus('💾')
+    await saveData()
+    setSyncStatus('✓')
+    toast('ok','Проект сохранён: '+name)
+  } catch(e) {
+    setSyncStatus('✗')
+    toast('err','Ошибка сохранения: '+e.message)
+  }
+  setTimeout(()=>setSyncStatus(''),2000)
 }
+
+async function saveNamedProject() {
+  const name = projectSafeName(document.getElementById('project-name-input').value)
+  if (!name) { toast('err','Введите название проекта'); return }
+  if (name === 'Экспорт') { toast('err','Это имя зарезервировано'); return }
+  currentProjectName = name
+  currentProjectFile = projectPath(name)
+  closeProjectSaveSheet()
+  await saveToDisk()
+}
+
+async function saveData() {
+  if (!currentProjectFile) throw new Error('Не выбрано имя проекта')
+  await ensureDir(PROJECT_DIR)
+  await uploadJSON(currentProjectFile,{projectName:currentProjectName,songs,sets,savedAt:new Date().toISOString()})
+}
+
 
 // ── RENDER ────────────────────────────────────────────
 function usedIds() {
@@ -706,6 +853,13 @@ function switchMobileZone(z) {
 
 // ── ADD SONG ──────────────────────────────────────────
 let _addSec='pop'
+function openProjectSaveSheet() {
+  document.getElementById('project-name-input').value = currentProjectName || ''
+  document.getElementById('project-save-overlay').classList.add('open')
+  setTimeout(()=>document.getElementById('project-name-input').focus(),50)
+}
+function closeProjectSaveSheet() { document.getElementById('project-save-overlay').classList.remove('open') }
+
 function openAddSheet() {
   _addSec='pop'
   document.getElementById('add-title').value=''
@@ -815,6 +969,8 @@ function toast(type,msg) {
 }
 
 document.getElementById('add-overlay').onclick=e=>{if(e.target===document.getElementById('add-overlay'))closeAddSheet()}
+document.getElementById('project-overlay').onclick=e=>{if(e.target===document.getElementById('project-overlay'))closeProjectsSheet()}
+document.getElementById('project-save-overlay').onclick=e=>{if(e.target===document.getElementById('project-save-overlay'))closeProjectSaveSheet()}
 document.getElementById('exp-overlay').onclick=e=>{if(e.target===document.getElementById('exp-overlay'))closeExpSheet()}
 
 init()
