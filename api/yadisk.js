@@ -1,46 +1,42 @@
-export default async function handler(req, res) {
-  // Allow CORS from any origin
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
-  if (req.method === 'OPTIONS') {
-    res.status(200).end()
-    return
-  }
+  if (req.method === 'OPTIONS') { res.status(200).end(); return }
 
   const token = process.env.YA_TOKEN
-  if (!token) {
-    res.status(500).json({ error: 'Token not configured' })
-    return
-  }
+  if (!token) { res.status(500).json({ error: 'Token not configured' }); return }
 
-  // Build Yandex Disk API URL
-  const { path: apiPath, ...queryParams } = req.query
-  const yadiskPath = '/' + (Array.isArray(apiPath) ? apiPath.join('/') : apiPath || '')
-  
-  const url = new URL('https://cloud-api.yandex.net/v1/disk' + yadiskPath)
-  Object.entries(queryParams).forEach(([k, v]) => url.searchParams.set(k, v))
+  // 'ep' = endpoint path (e.g. '/resources', '/resources/download')
+  // all other query params are forwarded to Yandex API
+  const ep = req.query.ep || '/'
+  const params = new URLSearchParams()
+  Object.entries(req.query).forEach(([k, v]) => {
+    if (k !== 'ep') params.set(k, v)
+  })
+
+  const yadiskUrl = 'https://cloud-api.yandex.net/v1/disk' + ep +
+    (params.toString() ? '?' + params.toString() : '')
 
   try {
-    const response = await fetch(url.toString(), {
+    const response = await fetch(yadiskUrl, {
       method: req.method,
       headers: {
         'Authorization': 'OAuth ' + token,
         'Content-Type': 'application/json',
       },
-      body: req.method !== 'GET' && req.method !== 'HEAD' ? JSON.stringify(req.body) : undefined
+      body: req.method !== 'GET' && req.method !== 'HEAD'
+        ? JSON.stringify(req.body) : undefined
     })
 
-    const contentType = response.headers.get('content-type') || ''
-    if (contentType.includes('application/json')) {
-      const data = await response.json()
-      res.status(response.status).json(data)
+    const ct = response.headers.get('content-type') || ''
+    if (ct.includes('application/json')) {
+      res.status(response.status).json(await response.json())
     } else {
-      const text = await response.text()
-      res.status(response.status).send(text)
+      res.status(response.status).send(await response.text())
     }
-  } catch (e) {
+  } catch(e) {
     res.status(500).json({ error: e.message })
   }
 }
