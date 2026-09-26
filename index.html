@@ -329,11 +329,17 @@ async function yadisk(method, path, opts={}) {
   const url = new URL('/api/yadisk', window.location.origin)
   url.searchParams.set('ep', path)
   if (opts.params) Object.entries(opts.params).forEach(([k,v]) => url.searchParams.set(k,v))
-  const res = await fetch(url, {
-    method: method||'GET',
-    headers:{'Content-Type':'application/json'},
-    body: opts.body ? JSON.stringify(opts.body) : undefined
-  })
+  const request = {
+    method: method||'GET'
+  }
+  // Yandex Disk PUT /resources требует запрос БЕЗ тела.
+  // Не отправляем Content-Type, если payload отсутствует: некоторые версии
+  // прокси превращают такой запрос в пустой JSON `{}`, что Yandex отвергает.
+  if (opts.body !== undefined) {
+    request.headers = {'Content-Type':'application/json'}
+    request.body = JSON.stringify(opts.body)
+  }
+  const res = await fetch(url, request)
   if (!res.ok && res.status!==409) {
     const err = await res.text()
     throw new Error(`YaDisk ${res.status}: ${err}`)
