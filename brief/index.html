@@ -33,50 +33,52 @@ body{font-family:var(--body);color:var(--ink);background:var(--bg);background-at
 .wrap{max-width:600px;margin:0 auto;padding:0 16px}
 
 /* ── Hero ── */
-.hero{padding:calc(36px + var(--safe-t)) 0 22px}
+.hero{padding:calc(24px + var(--safe-t)) 0 14px}
 .who{font-family:var(--display);font-weight:500;font-size:13px;color:var(--accent);letter-spacing:.02em}
-.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,7vw,36px);line-height:1.12;margin:10px 0 14px;letter-spacing:-.01em}
-.hero p{font-size:16px;color:var(--ink2);max-width:34em}
-.legend{display:grid;gap:8px;margin-top:18px;padding:14px 16px;background:var(--glass);border:1px solid var(--line);border-radius:16px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.legend div{display:flex;gap:10px;align-items:baseline;font-size:14.5px;color:var(--ink2)}
+.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(21px,5.6vw,28px);line-height:1.15;margin:8px 0 10px;letter-spacing:-.01em}
+.hero p{font-size:14.5px;color:var(--ink2);max-width:34em}
+.legend{display:grid;gap:6px;margin-top:14px;padding:10px 12px;background:var(--glass);border:1px solid var(--line);border-radius:12px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.legend div{display:flex;gap:10px;align-items:center;font-size:13.5px;color:var(--ink2)}
+.legend .ic{width:26px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:12px;font-weight:700;flex-shrink:0;color:#fff}
+.legend .ic.m{background:#2a9d6a}.legend .ic.y{background:#e8a825}.legend .ic.n{background:#5a5a72}
 .legend b{color:var(--ink);font-weight:600;white-space:nowrap}
 
 /* ── Section chips ── */
-.chips{position:sticky;top:0;z-index:5;padding:calc(10px + var(--safe-t)) 0 10px;margin:0 -16px;background:linear-gradient(to bottom,rgba(212,210,242,.92) 70%,rgba(212,210,242,0));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.chips{position:sticky;top:0;z-index:5;padding:calc(8px + var(--safe-t)) 0 8px;margin:0 -16px;background:linear-gradient(to bottom,rgba(212,210,242,.92) 70%,rgba(212,210,242,0));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .chips-row{display:flex;gap:8px;overflow-x:auto;padding:0 16px;scrollbar-width:none}
 .chips-row::-webkit-scrollbar{display:none}
-.chip{flex-shrink:0;border:none;border-radius:999px;padding:8px 14px;font:600 13.5px var(--body);color:#fff;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.chip{flex-shrink:0;border:none;border-radius:999px;padding:6px 12px;font:600 12.5px var(--body);color:#fff;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
 .chip span{opacity:.75;font-weight:500;margin-left:4px}
 
 /* ── Sections ── */
-.sec{margin-top:26px}
-.sec h2{font-family:var(--display);font-weight:700;font-size:19px;margin-bottom:12px;display:flex;align-items:baseline;gap:10px}
-.sec h2 small{font-family:var(--body);font-weight:500;font-size:14px;color:var(--ink3)}
-.list{display:grid;gap:10px}
+.sec{margin-top:18px}
+.sec-hd{display:flex;align-items:flex-end;gap:10px;margin-bottom:6px;padding:0 2px}
+.cols{display:grid;grid-template-columns:repeat(3,var(--bw));gap:var(--bgap);flex-shrink:0;padding-left:7px}
+.cols span{font-size:9.5px;font-weight:600;color:var(--ink3);text-align:center;letter-spacing:-.01em}
+.sec h2{font-family:var(--display);font-weight:700;font-size:15px;display:flex;align-items:baseline;gap:8px}
+.sec h2 small{font-family:var(--body);font-weight:500;font-size:12.5px;color:var(--ink3)}
+.list{display:grid;gap:5px}
+:root{--bw:34px;--bgap:4px}
 
-/* ── Song card ── */
-.song{position:relative;border-radius:16px;padding:14px 14px 12px;color:#fff;border:1px solid rgba(255,255,255,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 6px 18px -10px rgba(40,20,90,.45);transition:opacity .2s,filter .2s,transform .15s}
+/* строка-вопрос: слева отметки, справа название */
+.song{display:flex;align-items:center;gap:10px;border-radius:10px;padding:5px 10px 5px 6px;min-height:44px;color:#fff;border:1px solid rgba(255,255,255,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.3);transition:opacity .2s,filter .2s,box-shadow .15s}
 .song.s-pop{background:var(--c-pop)} .song.s-poprock{background:var(--c-poprock)} .song.s-modern{background:var(--c-modern)} .song.s-soviet{background:var(--c-soviet)} .song.s-extra{background:var(--c-extra)}
-.song-title{font-weight:600;font-size:16.5px;line-height:1.3;text-shadow:0 1px 2px rgba(0,0,0,.18);padding-right:30px}
-.mix-tag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;background:rgba(255,255,255,.22);border-radius:6px;padding:2px 7px;margin-bottom:6px}
-.mix-kids{margin-top:6px;font-size:13.5px;opacity:.9;line-height:1.4}
-.mark{position:absolute;top:12px;right:12px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;background:#fff;opacity:0;transform:scale(.6);transition:all .18s}
-
-/* 3-state control */
-.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:12px;padding:4px;border-radius:12px;background:rgba(0,0,0,.16)}
-.seg button{border:none;background:transparent;color:rgba(255,255,255,.92);font:600 14px var(--body);padding:10px 4px;border-radius:9px;cursor:pointer;transition:background .15s,color .15s}
+.seg{display:grid;grid-template-columns:repeat(3,var(--bw));gap:var(--bgap);flex-shrink:0}
+.seg button{height:32px;border:1.5px solid rgba(255,255,255,.55);background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);font:700 14px var(--body);border-radius:8px;cursor:pointer;display:grid;place-items:center;transition:background .12s,color .12s,border-color .12s}
 .seg button:focus-visible{outline:2px solid #fff;outline-offset:1px}
-@media (hover:hover){.seg button:hover{background:rgba(255,255,255,.14)}}
+@media (hover:hover){.seg button:hover{background:rgba(255,255,255,.25)}}
+.song-body{min-width:0;flex:1}
+.song-title{font-weight:600;font-size:14px;line-height:1.25;text-shadow:0 1px 2px rgba(0,0,0,.15)}
+.mix-tag{font-size:9.5px;font-weight:700;letter-spacing:.05em;background:rgba(255,255,255,.25);border-radius:4px;padding:1px 5px;margin-right:5px;vertical-align:1px}
+.mix-kids{font-size:11.5px;opacity:.85;line-height:1.3;margin-top:1px}
 
-/* states */
-.song.st-must{box-shadow:0 0 0 3px #fff,0 10px 26px -10px rgba(40,20,90,.6)}
-.song.st-must .mark{opacity:1;transform:scale(1)}
-.song.st-must .seg [data-v="must"]{background:#fff;color:var(--ink)}
-.song.st-maybe .seg [data-v="maybe"]{background:rgba(255,255,255,.4);color:#fff}
-.song.st-no{opacity:.38;filter:grayscale(.75)}
+/* состояния */
+.song.st-must{box-shadow:0 0 0 2.5px #fff,0 6px 16px -8px rgba(40,20,90,.55)}
+.song.st-must .seg [data-v="must"]{background:#2a9d6a;border-color:#fff;color:#fff}
+.song.st-maybe .seg [data-v="maybe"]{background:#e8a825;border-color:#fff;color:#fff}
+.song.st-no{opacity:.4;filter:grayscale(.8)}
 .song.st-no .song-title{text-decoration:line-through;text-decoration-thickness:1.5px}
-.song.st-no .seg [data-v="no"]{background:rgba(0,0,0,.35);color:#fff}
-.s-pop .mark{color:var(--t-pop)} .s-poprock .mark{color:var(--t-poprock)} .s-modern .mark{color:var(--t-modern)} .s-soviet .mark{color:var(--t-soviet)} .s-extra .mark{color:var(--t-extra)}
+.song.st-no .seg [data-v="no"]{background:#3a3a50;border-color:#fff;color:#fff}
 
 /* ── Bottom bar ── */
 .spacer{height:calc(120px + var(--safe-b))}
@@ -130,9 +132,9 @@ body{font-family:var(--body);color:var(--ink);background:var(--bg);background-at
     <h1>Соберём программу вашего концерта</h1>
     <p>Пролистайте репертуар и отметьте песни. Выбор сохраняется на этом устройстве, можно вернуться и закончить позже.</p>
     <div class="legend">
-      <div><b>Точно надо</b> песня обязательно прозвучит</div>
-      <div><b>Можно</b> на усмотрение Петра, по настроению зала</div>
-      <div><b>Не надо</b> эту песню не играем</div>
+      <div><span class="ic m">✓</span><span><b>Надо</b> — песня обязательно прозвучит</span></div>
+      <div><span class="ic y">?</span><span><b>Можно</b> — на усмотрение Петра, по настроению зала</span></div>
+      <div><span class="ic n">✕</span><span><b>Нет</b> — эту песню не играем</span></div>
     </div>
   </header>
 
@@ -215,7 +217,7 @@ function render() {
     const list = songs.filter(s => s.section === sec)
     if (!list.length) continue
     chips += `<button class="chip" style="background:var(--c-${sec})" onclick="jump('${sec}')">${label}<span>${list.length}</span></button>`
-    html += `<section class="sec" id="sec-${sec}"><h2>${label}<small>${list.length}</small></h2><div class="list">`
+    html += `<section class="sec" id="sec-${sec}"><div class="sec-hd"><div class="cols" aria-hidden="true"><span>Надо</span><span>Можно</span><span>Нет</span></div><h2>${label}<small>${list.length}</small></h2></div><div class="list">`
     for (const s of list) html += card(s)
     html += '</div></section>'
   }
@@ -226,18 +228,19 @@ function render() {
 
 function card(s) {
   const st = choices[s.id]
+  const title = esc(s.isMix ? s.title.replace(/^MIX:\s*/i, '') : s.title)
   const kids = s.isMix && s.children?.length ? `<div class="mix-kids">${s.children.map(esc).join(' → ')}</div>` : ''
-  return `<article class="song s-${s.section}${st ? ' st-' + st : ''}" id="song-${esc(s.id)}">
-    <span class="mark" aria-hidden="true">✓</span>
-    ${s.isMix ? '<span class="mix-tag">ПОПУРРИ</span>' : ''}
-    <div class="song-title">${esc(s.isMix ? s.title.replace(/^MIX:\s*/i, '') : s.title)}</div>
-    ${kids}
-    <div class="seg" role="group" aria-label="Выбор для песни">
-      <button data-v="must" aria-pressed="${st==='must'}" onclick="pick('${s.id}','must')">Точно надо</button>
-      <button data-v="maybe" aria-pressed="${st==='maybe'}" onclick="pick('${s.id}','maybe')">Можно</button>
-      <button data-v="no" aria-pressed="${st==='no'}" onclick="pick('${s.id}','no')">Не надо</button>
+  return `<div class="song s-${s.section}${st ? ' st-' + st : ''}" id="song-${esc(s.id)}">
+    <div class="seg" role="group" aria-label="${title}">
+      <button data-v="must" title="Надо" aria-label="Надо" aria-pressed="${st==='must'}" onclick="pick('${s.id}','must')">✓</button>
+      <button data-v="maybe" title="Можно" aria-label="Можно" aria-pressed="${st==='maybe'}" onclick="pick('${s.id}','maybe')">?</button>
+      <button data-v="no" title="Нет" aria-label="Нет" aria-pressed="${st==='no'}" onclick="pick('${s.id}','no')">✕</button>
     </div>
-  </article>`
+    <div class="song-body">
+      <div class="song-title">${s.isMix ? '<span class="mix-tag">ПОПУРРИ</span>' : ''}${title}</div>
+      ${kids}
+    </div>
+  </div>`
 }
 
 function pick(id, v) {
@@ -264,7 +267,7 @@ function updateBar() {
   const t = tally()
   const any = t.must + t.maybe + t.no
   document.getElementById('counts').innerHTML = any
-    ? `<span class="nw">Точно <b>${t.must}</b></span> <span class="nw">Можно <b>${t.maybe}</b></span> <span class="nw">Не надо <b>${t.no}</b></span><br><span class="nw">Не отмечено: ${t.left}</span>`
+    ? `<span class="nw">Надо <b>${t.must}</b></span> <span class="nw">Можно <b>${t.maybe}</b></span> <span class="nw">Нет <b>${t.no}</b></span><br><span class="nw">Не отмечено: ${t.left}</span>`
     : 'Отметьте песни, которые хотите услышать'
   document.getElementById('send-btn').disabled = !(t.must + t.maybe)
 }
@@ -276,7 +279,7 @@ function jump(sec) {
 function openSheet() {
   const t = tally()
   document.getElementById('sheet-sum').textContent =
-    `Точно надо: ${t.must}, можно: ${t.maybe}, не надо: ${t.no}.` + (t.left ? ` Неотмеченные ${t.left} Пётр подберёт сам.` : '')
+    `Надо: ${t.must}, можно: ${t.maybe}, нет: ${t.no}.` + (t.left ? ` Неотмеченные ${t.left} Пётр подберёт сам.` : '')
   const d = document.getElementById('f-date')
   d.min = new Date().toISOString().slice(0, 10)
   document.getElementById('err').textContent = ''
