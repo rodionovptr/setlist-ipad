@@ -369,10 +369,8 @@ async function init() {
     setStatus('Загрузка данных...')
     await ensureDir('/Сет-листы')
     try {
-      // Get download URL and fetch immediately in one chain
       const catData = await yadisk('GET', '/resources/download', {params:{path:'/Сет-листы/songs_catalog.json'}})
-      const catRes = await fetch(catData.href)
-      songs = await catRes.json()
+      songs = await (await fetch(catData.href)).json()
     } catch(e) { await scanSongsFolder() }
     try {
       const dlData = await yadisk('GET', '/resources/download', {params:{path:PROJECT_FILE}})
