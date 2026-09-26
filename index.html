@@ -369,12 +369,14 @@ async function init() {
     setStatus('Загрузка данных...')
     await ensureDir('/Сет-листы')
     try {
-      const catUrl = await getDownloadUrl('/Сет-листы/songs_catalog.json')
-      songs = await (await fetch(catUrl)).json()
+      // Get download URL and fetch immediately in one chain
+      const catData = await yadisk('GET', '/resources/download', {params:{path:'/Сет-листы/songs_catalog.json'}})
+      const catRes = await fetch(catData.href)
+      songs = await catRes.json()
     } catch(e) { await scanSongsFolder() }
     try {
-      const dlUrl = await getDownloadUrl(PROJECT_FILE)
-      const data = await (await fetch(dlUrl)).json()
+      const dlData = await yadisk('GET', '/resources/download', {params:{path:PROJECT_FILE}})
+      const data = await (await fetch(dlData.href)).json()
       if (data.sets) sets = data.sets
     } catch(e) {}
     setStatus(''); showLoaderBtns()
