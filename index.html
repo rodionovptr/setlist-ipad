@@ -340,7 +340,7 @@ const EXPORT_DIR = '/Сет-листы/Экспорт'
 const SEC_LABELS = {pop:'Поп хиты',poprock:'Поп-рок',modern:'Современное',soviet:'Советские',extra:'Доп (редкие)'}
 
 let songs=[], sets={'1':[],'2':[],'x':[]}, history=[]
-let dragId=null, dragFrom=null, dragFromIdx=null, dragOverIdx=null, dragOverZone=null, dragGroup=false, dragGroupEnd=null, dragDropHandled=false
+let dragId=null, dragFrom=null, dragFromIdx=null, dragOverIdx=null, dragOverZone=null, dragGroup=false, dragGroupEnd=null, dragDropHandled=false, dragGroupDropHandled=false, dragLastY=null, dragLastX=null
 
 // ── YANDEX DISK API via proxy ──────────────────────────
 async function yadisk(method, path, opts={}) {
@@ -698,6 +698,7 @@ function renderZone(z) {
         dragFrom=z
         dragFromIdx=i
         dragGroup=true
+        dragGroupDropHandled=false
         dragGroupEnd=j
         ev.dataTransfer.effectAllowed='move'
         ev.dataTransfer.setData('text/plain',s.mixParentId)
@@ -707,6 +708,8 @@ function renderZone(z) {
         ev.preventDefault();
         ev.stopPropagation();
         if(dragId===null) return;
+        dragOverZone=z;
+        dragLastY=ev.clientY; dragLastX=ev.clientX;
         const r=hdr.getBoundingClientRect();
         // The whole MIX header is a drop target. For a MIX dragged as a
         // group, choose before/after the entire block. For a normal song
@@ -724,8 +727,14 @@ function renderZone(z) {
       })
       hdr.addEventListener('dragend',()=>{
         hdr.classList.remove('dragging-src')
+        if(dragGroup && !dragGroupDropHandled && dragFrom && dragId && dragOverZone){
+          const zone=dragOverZone;
+          const at=getInsertIdxAtY(zone, dragLastY ?? hdr.getBoundingClientRect().top);
+          moveDraggedGroup(zone, at);
+        }
         dragGroup=false
         dragGroupEnd=null
+        dragGroupDropHandled=false
       })
       el.appendChild(hdr)
       for(let k=i;k<j;k++) el.appendChild(makeSetItem(list[k],k,z,true))
@@ -755,8 +764,14 @@ function makeSetItem(s,i,z,isMix) {
   card.addEventListener('dragend',()=>card.classList.remove('dragging-src'))
   card.addEventListener('dragover',ev=>{
     ev.preventDefault(); ev.stopPropagation()
-    if(dragFrom!==z||dragId===null) return
+    if(dragId===null) return
+    dragOverZone=z;
+    dragLastY=ev.clientY; dragLastX=ev.clientX
     const rect=card.getBoundingClientRect()
+    if(dragFrom!==z){
+      dragOverIdx=(ev.clientY>rect.top+rect.height/2)?i+1:i
+      return
+    }
     const after=ev.clientY>rect.top+rect.height/2
     const target=after?i+1:i
 
@@ -786,7 +801,7 @@ function updateCounts() {
 
 // ── DRAG FROM LIBRARY ─────────────────────────────────
 function lDragStart(e,id) {
-  dragId=id; dragFrom='left'; dragFromIdx=null; dragOverZone=null; dragDropHandled=false
+  dragId=id; dragFrom='left'; dragFromIdx=null; dragOverZone=null; dragDropHandled=false; dragLastY=null; dragLastX=null
   e.dataTransfer.effectAllowed='copy'
   e.dataTransfer.setData('text/plain',id)
   requestAnimationFrame(()=>e.currentTarget.classList.add('dragging-src'))
@@ -811,13 +826,14 @@ function lDragEnd(e) {
       }
     }
   }
-  dragId=null; dragFrom=null; dragFromIdx=null; dragOverIdx=null; dragOverZone=null; dragGroup=false; dragGroupEnd=null; dragDropHandled=false
+  dragId=null; dragFrom=null; dragFromIdx=null; dragOverIdx=null; dragOverZone=null; dragGroup=false; dragGroupEnd=null; dragDropHandled=false; dragLastY=null; dragLastX=null
 }
 
 // ── DROP ZONES ────────────────────────────────────────
 function zOver(e,zone) {
   e.preventDefault()
   dragOverZone=zone
+  dragLastY=e.clientY; dragLastX=e.clientX
   e.dataTransfer.dropEffect=(dragGroup?'move':'copy')
   document.getElementById('zone-'+zone).classList.add('over')
   dragOverIdx=getInsertIdx(e,zone)
@@ -828,6 +844,8 @@ function zLeave(e,zone) {
 }
 function zDrop(e,zone) {
   e.preventDefault()
+  dragOverZone=zone
+  dragLastY=e.clientY; dragLastX=e.clientX
   dragDropHandled=true
   document.getElementById('zone-'+zone).classList.remove('over')
   if(!dragId) return
@@ -846,31 +864,42 @@ function zDrop(e,zone) {
       sets[zone].splice(at,0,{id:song.id,title:song.title,section:song.section,exactFile:song.exactFile,diskPath:song.diskPath||null})
     }
   } else if(dragGroup) {
-    saveHistory()
-    const start=dragFromIdx, end=dragGroupEnd
-    // Dropping inside the group's own range means no movement.
-    // The exact end index is also the insertion point immediately after
-    // the group, so it must NOT be treated as an inside-drop.
-    if(dragFrom===zone && at>start && at<end){
-      dragId=null; dragFrom=null; dragFromIdx=null; dragOverIdx=null; dragGroup=false; dragGroupEnd=null
-      return
-    }
-    const block=sets[dragFrom].splice(start,end-start)
-    const insertAt=(dragFrom===zone && at>start) ? at-(end-start) : at
-    sets[zone].splice(Math.max(0,insertAt),0,...block)
+    moveDraggedGroup(zone,at)
+    dragGroupDropHandled=true
+    dragId=null; dragFrom=null; dragFromIdx=null; dragOverIdx=null; dragOverZone=null; dragGroup=false; dragGroupEnd=null; dragDropHandled=false; dragLastY=null; dragLastX=null
+    return
   } else if(dragFrom!==zone) {
     saveHistory()
     const item=sets[dragFrom].splice(dragFromIdx,1)[0]
     sets[zone].splice(at,0,item)
   }
-  dragId=null; dragFrom=null; dragFromIdx=null; dragOverIdx=null; dragOverZone=null; dragGroup=false; dragGroupEnd=null; dragDropHandled=false
+  dragId=null; dragFrom=null; dragFromIdx=null; dragOverIdx=null; dragOverZone=null; dragGroup=false; dragGroupEnd=null; dragDropHandled=false; dragLastY=null; dragLastX=null
   renderAll()
 }
 
 function getInsertIdx(e,zone) {
+  return getInsertIdxAtY(zone,e.clientY)
+}
+
+function moveDraggedGroup(zone,at){
+  if(!dragGroup || dragFrom===null || dragId===null || dragGroupEnd===null) return false;
+  const from=dragFrom;
+  const start=dragFromIdx;
+  const end=dragGroupEnd;
+  if(start===null || end===null || end<=start) return false;
+  if(from===zone && at>start && at<end) return false;
+  saveHistory();
+  const block=sets[from].splice(start,end-start);
+  const insertAt=(from===zone && at>start) ? at-(end-start) : at;
+  sets[zone].splice(Math.max(0,Math.min(insertAt,sets[zone].length)),0,...block);
+  dragDropHandled=true;
+  renderAll();
+  return true;
+}
+
+function getInsertIdxAtY(zone,y) {
   const el=document.getElementById('zone-'+zone)
   const list=sets[zone]
-  const y=e.clientY
 
   // Treat every MIX and all of its children as one logical block.
   // This is important when a MIX is being dragged: dropping over one of
