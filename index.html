@@ -472,7 +472,7 @@ const SONGS_CATALOG = [{"id": "amega_letet", "title": "Амега — Летет
 async function init() {
   // Каталог доступен сразу из встроенного списка.
   // При открытии сайта больше не показываем стартовый экран выбора проекта.
-  songs = SONGS_CATALOG
+  songs = [...SONGS_CATALOG]
   try {
     await yadisk('GET','/')
     await ensureDir(PROJECT_DIR)
@@ -563,7 +563,9 @@ async function loadProject(name) {
       '2': Array.isArray(data.sets['2']) ? data.sets['2'] : [],
       'x': Array.isArray(data.sets.x) ? data.sets.x : []
     }
-    if (Array.isArray(data.songs) && data.songs.length) songs = data.songs
+    // Каталог всегда встроенный (с MIX и разделами); из проекта берём только свои песни
+    const custom = Array.isArray(data.songs) ? data.songs.filter(x => x && x.isCustom && !SONGS_CATALOG.some(c => c.id === x.id)) : []
+    songs = [...SONGS_CATALOG, ...custom]
     currentProjectName = projectSafeName(name)
     currentProjectFile = path
     renderAll()
@@ -685,25 +687,17 @@ function renderZone(z) {
     el.appendChild(mkLine(z,i))
     const s=list[i]
     if(s.isMixChild) {
+      const start=i
       let j=i
       while(j<list.length&&list[j].isMixChild&&list[j].mixParentId===s.mixParentId) j++
+      const end=j
       const hdr=document.createElement('div')
       hdr.className=`mix-grp-hdr s-${s.section}`
       hdr.draggable=true
-      hdr.dataset.start=i
-      hdr.dataset.end=j
-      hdr.innerHTML=`<span>⊞ ${s.mixParentTitle}</span><button class="mix-grp-rm" onclick="removeMixGrp('${z}',${i},${j})">×</button>`
-      hdr.addEventListener('dragstart',ev=>{
-        dragId=s.mixParentId
-        dragFrom=z
-        dragFromIdx=i
-        dragGroup=true
-        dragGroupDropHandled=false
-        dragGroupEnd=j
-        ev.dataTransfer.effectAllowed='move'
-        ev.dataTransfer.setData('text/plain',s.mixParentId)
-        requestAnimationFrame(()=>hdr.classList.add('dragging-src'))
-      })
+      hdr.dataset.start=start
+      hdr.dataset.end=end
+      hdr.innerHTML=`<span>⊞ ${s.mixParentTitle}</span><button class="mix-grp-rm" onclick="removeMixGrp('${z}',${start},${end})">×</button>`
+      hdr.addEventListener('dragstart',ev=>startGroupDrag(ev,hdr,z,start,end,s.mixParentId))
       hdr.addEventListener('dragover',ev=>{
         ev.preventDefault();
         ev.stopPropagation();
@@ -711,10 +705,7 @@ function renderZone(z) {
         dragOverZone=z;
         dragLastY=ev.clientY; dragLastX=ev.clientX;
         const r=hdr.getBoundingClientRect();
-        // The whole MIX header is a drop target. For a MIX dragged as a
-        // group, choose before/after the entire block. For a normal song
-        // dragged onto the header, use the same insertion point.
-        dragOverIdx = ev.clientY < r.top + r.height/2 ? i : j;
+        dragOverIdx = ev.clientY < r.top + r.height/2 ? start : end;
         ev.dataTransfer.dropEffect = dragGroup ? 'move' : 'copy';
       })
       hdr.addEventListener('drop',ev=>{
@@ -722,26 +713,16 @@ function renderZone(z) {
         ev.stopPropagation();
         if(dragId===null) return;
         const r=hdr.getBoundingClientRect();
-        dragOverIdx = ev.clientY < r.top + r.height/2 ? i : j;
+        dragOverIdx = ev.clientY < r.top + r.height/2 ? start : end;
         zDrop(ev,z);
       })
-      hdr.addEventListener('dragend',()=>{
-        hdr.classList.remove('dragging-src')
-        if(dragGroup && !dragGroupDropHandled && dragFrom && dragId && dragOverZone){
-          const zone=dragOverZone;
-          const at=getInsertIdxAtY(zone, dragLastY ?? hdr.getBoundingClientRect().top);
-          moveDraggedGroup(zone, at);
-        }
-        dragGroup=false
-        dragGroupEnd=null
-        dragGroupDropHandled=false
-      })
+      hdr.addEventListener('dragend',()=>endGroupDrag(hdr))
       el.appendChild(hdr)
-      for(let k=i;k<j;k++) el.appendChild(makeSetItem(list[k],k,z,true))
+      for(let k=start;k<end;k++) el.appendChild(makeSetItem(list[k],k,z,{start,end,parentId:s.mixParentId}))
       el.appendChild(mkLine(z,j))
       i=j
     } else {
-      el.appendChild(makeSetItem(s,i,z,false))
+      el.appendChild(makeSetItem(s,i,z,null))
       i++
     }
   }
@@ -749,37 +730,54 @@ function renderZone(z) {
 
 }
 
-function makeSetItem(s,i,z,isMix) {
+function startGroupDrag(ev,el,z,start,end,parentId){
+  dragId=parentId; dragFrom=z; dragFromIdx=start; dragGroup=true
+  dragGroupEnd=end; dragGroupDropHandled=false; dragDropHandled=false
+  ev.dataTransfer.effectAllowed='move'
+  ev.dataTransfer.setData('text/plain',parentId)
+  requestAnimationFrame(()=>el.classList.add('dragging-src'))
+}
+function endGroupDrag(el){
+  el.classList.remove('dragging-src')
+  // Fallback: если браузер (iPad/Safari) не прислал drop
+  if(dragGroup && !dragGroupDropHandled && dragFrom && dragId && dragOverZone){
+    const zone=dragOverZone
+    const at=getInsertIdxAtY(zone, dragLastY ?? el.getBoundingClientRect().top)
+    moveDraggedGroup(zone, at)
+  }
+  dragId=null; dragFrom=null; dragFromIdx=null; dragOverIdx=null; dragOverZone=null; dragGroup=false; dragGroupEnd=null; dragDropHandled=false; dragGroupDropHandled=false; dragLastY=null; dragLastX=null
+}
+
+function makeSetItem(s,i,z,grp) {
   const card=document.createElement('div')
-  card.className=`set-item s-${s.section}${isMix?' is-mix':''}`
+  card.className=`set-item s-${s.section}${grp?' is-mix':''}`
   card.draggable=true
   card.dataset.idx=i
   card.innerHTML=`<span class="set-grip">⠿</span><span class="set-num">${i+1}</span><span class="set-title">${s.title}</span><button class="set-rm" onclick="removeItem('${z}',${i})">×</button>`
-  card.addEventListener('dragstart',ev=>{
-    dragId=s.id; dragFrom=z; dragFromIdx=i; dragGroup=false; dragGroupEnd=null
-    ev.dataTransfer.effectAllowed='all'
-    ev.dataTransfer.setData('text/plain',s.id)
-    requestAnimationFrame(()=>card.classList.add('dragging-src'))
-  })
-  card.addEventListener('dragend',()=>card.classList.remove('dragging-src'))
+  if(grp){
+    // Песня внутри MIX тащит за собой весь MIX целиком
+    card.addEventListener('dragstart',ev=>startGroupDrag(ev,card,z,grp.start,grp.end,grp.parentId))
+    card.addEventListener('dragend',()=>endGroupDrag(card))
+  } else {
+    card.addEventListener('dragstart',ev=>{
+      dragId=s.id; dragFrom=z; dragFromIdx=i; dragGroup=false; dragGroupEnd=null
+      ev.dataTransfer.effectAllowed='all'
+      ev.dataTransfer.setData('text/plain',s.id)
+      requestAnimationFrame(()=>card.classList.add('dragging-src'))
+    })
+    card.addEventListener('dragend',()=>card.classList.remove('dragging-src'))
+  }
   card.addEventListener('dragover',ev=>{
     ev.preventDefault(); ev.stopPropagation()
     if(dragId===null) return
     dragOverZone=z;
     dragLastY=ev.clientY; dragLastX=ev.clientX
-    const rect=card.getBoundingClientRect()
-    if(dragFrom!==z){
-      dragOverIdx=(ev.clientY>rect.top+rect.height/2)?i+1:i
-      return
-    }
-    const after=ev.clientY>rect.top+rect.height/2
-    const target=after?i+1:i
-
-    if(dragGroup){
+    // Точка вставки с учётом MIX-блоков: внутрь чужого MIX не вставляем
+    const target=getInsertIdxAtY(z,ev.clientY)
+    if(dragFrom!==z || dragGroup){
       dragOverIdx=target
       return
     }
-
     if(target!==dragFromIdx&&target!==dragFromIdx+1){
       const item=sets[z].splice(dragFromIdx,1)[0]
       const ni=target>dragFromIdx?target-1:target
@@ -804,7 +802,8 @@ function lDragStart(e,id) {
   dragId=id; dragFrom='left'; dragFromIdx=null; dragOverZone=null; dragDropHandled=false; dragLastY=null; dragLastX=null
   e.dataTransfer.effectAllowed='copy'
   e.dataTransfer.setData('text/plain',id)
-  requestAnimationFrame(()=>e.currentTarget.classList.add('dragging-src'))
+  const el=e.currentTarget
+  requestAnimationFrame(()=>el&&el.classList.add('dragging-src'))
 }
 function lDragEnd(e) {
   e.currentTarget.classList.remove('dragging-src')
