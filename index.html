@@ -595,7 +595,7 @@ function projectPath(name) {
 async function listProjects() {
   const items = await listDir(PROJECT_DIR)
   return items
-    .filter(x => x.type === 'file' && /\.json$/i.test(x.name))
+    .filter(x => x.type === 'file' && /\.json$/i.test(x.name) && !['songs_catalog.json','setlist_data.json'].includes(x.name))
     .sort((a,b) => String(b.modified||'').localeCompare(String(a.modified||'')) || a.name.localeCompare(b.name,'ru'))
 }
 
