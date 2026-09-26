@@ -72,7 +72,7 @@ body{font-family:'Golos Text',sans-serif;background:var(--bg);color:var(--text);
 .sec-body{display:flex;flex-direction:column;gap:2px;margin-bottom:4px}
 .sec-body.hidden{display:none}
 
-.song-card{border-radius:7px;padding:8px 10px;border:1px solid rgba(255,255,255,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.4);display:flex;align-items:center;gap:7px;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-user-drag:none;touch-action:none;transition:opacity .15s,transform .1s}
+.song-card{border-radius:7px;padding:8px 10px;border:1px solid rgba(255,255,255,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.4);display:flex;align-items:center;gap:7px;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-user-drag:element;touch-action:auto;transition:opacity .15s,transform .1s}
 .song-card:hover{transform:scale(.99)}
 .song-card.used{opacity:.3;cursor:default;pointer-events:none}
 .song-card.dragging-src{opacity:.2;cursor:grabbing}
@@ -85,10 +85,10 @@ body{font-family:'Golos Text',sans-serif;background:var(--bg);color:var(--text);
 .s-title{font-size:12px;font-weight:600;color:#fff;flex:1;line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .s-add{font-size:14px;color:rgba(255,255,255,.8);flex-shrink:0}
 
-.mix-head{border-radius:7px;padding:8px 10px;border:1px solid rgba(255,255,255,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.4);display:flex;align-items:center;gap:6px;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-user-drag:none;touch-action:none;transition:opacity .15s}
+.mix-head{border-radius:7px;padding:8px 10px;border:1px solid rgba(255,255,255,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.4);display:flex;align-items:center;gap:6px;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-user-drag:element;touch-action:auto;transition:opacity .15s}
 .mix-head:hover{opacity:.9}
 .mix-head.used{opacity:.3;cursor:default;pointer-events:none}
-.song-card > *, .mix-head > *, .set-item > * { pointer-events:none; -webkit-user-select:none; user-select:none; -webkit-user-drag:none; }
+.song-card > *, .mix-head > *, .set-item > * { pointer-events:none; -webkit-user-select:none; user-select:none; }
 .set-item .set-rm, .mix-grp-rm { pointer-events:auto; }
 .mix-head.dragging-src{opacity:.2}
 .mix-head.s-pop{background:var(--c-pop)}
@@ -114,7 +114,7 @@ body{font-family:'Golos Text',sans-serif;background:var(--bg);color:var(--text);
 .zone-drop.over{background:rgba(255,255,255,.1)}
 .zone-empty{display:flex;align-items:center;justify-content:center;height:80px;font-size:12px;color:var(--text3);border:1px dashed rgba(150,150,200,.4);border-radius:10px;margin:8px 0}
 
-.set-item{border-radius:7px;padding:9px 10px;border:1px solid rgba(255,255,255,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.4);display:flex;align-items:center;gap:7px;margin-bottom:3px;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-user-drag:none;touch-action:none;transition:opacity .15s}
+.set-item{border-radius:7px;padding:9px 10px;border:1px solid rgba(255,255,255,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.4);display:flex;align-items:center;gap:7px;margin-bottom:3px;cursor:grab;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-user-drag:element;touch-action:auto;transition:opacity .15s}
 .set-item.s-pop{background:var(--c-pop)}
 .set-item.s-poprock{background:var(--c-poprock)}
 .set-item.s-modern{background:var(--c-modern)}
