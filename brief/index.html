@@ -455,10 +455,24 @@ function noteBurst(el) {
   }
 }
 
+// Сколько реальных песен представляет запись каталога: обычная песня — 1,
+// мэшап — число песен внутри него (минус те, что исключены крестиком)
+function songWeight(s) {
+  if (!s.isMix) return 1
+  const kids = s.children || []
+  return kids.filter(c => choices[c.id] !== 'no').length
+}
+
 function tally() {
   const t = { must: 0, maybe: 0, no: 0 }
-  songs.forEach(s => { const v = choices[s.id]; if (v) t[v]++ })
-  t.left = songs.length - t.must - t.maybe - t.no
+  let total = 0
+  songs.forEach(s => {
+    const w = songWeight(s)
+    total += w
+    const v = choices[s.id]
+    if (v) t[v] += w
+  })
+  t.left = total - t.must - t.maybe - t.no
   return t
 }
 
