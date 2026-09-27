@@ -18,18 +18,18 @@
   --ink:#1a1a2e; --ink2:#4a4a6a; --ink3:#8a8ab0;
   --glass:rgba(255,255,255,.5); --line:rgba(255,255,255,.75);
   --accent:#c02050;
-  --c-pop:linear-gradient(145deg,#f08030,#e85060,#c84080);
-  --c-poprock:linear-gradient(145deg,#9060e0,#6040c8,#4030b0);
-  --c-modern:linear-gradient(145deg,#30b880,#20a0a0,#1880c0);
-  --c-soviet:linear-gradient(145deg,#e03060,#c02050,#901040);
-  --c-extra:linear-gradient(145deg,#4080e0,#3060c8,#2040b0);
+  --c-pop:#ca0a17;
+  --c-poprock:#4053b2;
+  --c-modern:#257ef6;
+  --c-soviet:#f07621;
+  --c-extra:#11706a;
   --t-pop:#c84080; --t-poprock:#5a3cc8; --t-modern:#1a8a9a; --t-soviet:#b02050; --t-extra:#2f5cc4;
   --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
   --display:'Unbounded',system-ui,sans-serif;
   --body:'Golos Text',system-ui,-apple-system,'Segoe UI',sans-serif;
 }
 html{scroll-padding-top:calc(64px + var(--safe-t));-webkit-text-size-adjust:100%}
-body{font-family:var(--body);color:var(--ink);background:var(--bg);background-attachment:fixed;min-height:100vh;line-height:1.45}
+body{font-family:var(--body);color:var(--ink);background:var(--neutral-bg);min-height:100vh;line-height:1.45}
 .wrap{max-width:600px;margin:0 auto;padding:0 16px}
 
 /* ── Hero ── */
@@ -40,48 +40,94 @@ body{font-family:var(--body);color:var(--ink);background:var(--bg);background-at
 .hero p.note{font-size:13px;color:var(--ink3);margin-top:6px}
 .legend{display:grid;gap:6px;margin-top:14px;padding:10px 12px;background:var(--glass);border:1px solid var(--line);border-radius:12px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .legend div{display:flex;gap:10px;align-items:center;font-size:13.5px;color:var(--ink2)}
-.legend .ic{width:26px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:12px;font-weight:700;flex-shrink:0;color:#fff}
-.legend .ic.m{background:#2a9d6a}.legend .ic.y{background:#e8a825}.legend .ic.n{background:#5a5a72}
+.legend .ic{width:26px;height:22px;display:grid;place-items:center;font-size:12px;font-weight:700;flex-shrink:0;color:#fff;background:var(--ink2)}
 .legend b{color:var(--ink);font-weight:600;white-space:nowrap}
 
 /* ── Section chips ── */
-.chips{position:sticky;top:0;z-index:5;padding:calc(8px + var(--safe-t)) 0 8px;margin:0 -16px;background:linear-gradient(to bottom,rgba(212,210,242,.92) 70%,rgba(212,210,242,0));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.chips-row{display:flex;gap:8px;overflow-x:auto;padding:0 16px;scrollbar-width:none}
+.chips{position:sticky;top:0;z-index:5;padding:8px 0;margin:0 -16px;background:var(--neutral-bg);}
+.chips-row{display:flex;gap:6px;overflow-x:auto;padding:0 16px;scrollbar-width:none}
 .chips-row::-webkit-scrollbar{display:none}
-.chip{flex-shrink:0;border:none;border-radius:999px;padding:6px 12px;font:600 12.5px var(--body);color:#fff;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
-.chip span{opacity:.75;font-weight:500;margin-left:4px}
+.chip{flex-shrink:0;border:none;border-radius:0;padding:9px 13px;font:700 12.5px var(--body);color:#fff;cursor:pointer;box-shadow:none}
+.chip span{opacity:.72;font-weight:600;margin-left:5px}
 
 /* ── Sections ── */
 .sec{margin-top:18px}
 .sec-hd{display:flex;align-items:flex-end;gap:10px;margin-bottom:6px;padding:0 2px}
 .cols{display:grid;grid-template-columns:repeat(3,var(--bw));gap:var(--bgap);flex-shrink:0;margin-left:auto;padding-right:5px}
-.cols span{font-size:9.5px;font-weight:600;color:var(--ink3);text-align:center;letter-spacing:-.01em}
+.cols span{font-size:8.5px;font-weight:600;color:var(--ink3);text-align:center;letter-spacing:-.01em}
 .sec h2{font-family:var(--display);font-weight:700;font-size:15px;display:flex;align-items:baseline;gap:8px}
 .sec h2 small{font-family:var(--body);font-weight:500;font-size:12.5px;color:var(--ink3)}
 .list{display:grid;gap:5px}
-:root{--bw:34px;--bgap:4px}
+:root{--bw:34px;--bgap:10px}
 
-/* строка-вопрос: слева отметки, справа название */
-.song{display:flex;align-items:center;gap:10px;border-radius:10px;padding:5px 6px 5px 12px;min-height:44px;color:#fff;border:1px solid rgba(255,255,255,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.3);transition:opacity .2s,filter .2s,box-shadow .15s}
-.song.s-pop{background:var(--c-pop)} .song.s-poprock{background:var(--c-poprock)} .song.s-modern{background:var(--c-modern)} .song.s-soviet{background:var(--c-soviet)} .song.s-extra{background:var(--c-extra)}
-.seg{display:grid;grid-template-columns:repeat(3,var(--bw));gap:var(--bgap);flex-shrink:0}
-.seg button{height:34px;border:1.5px solid rgba(255,255,255,.55);background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);font:700 14px var(--body);border-radius:8px;cursor:pointer;display:grid;place-items:center;transition:background .12s,color .12s,border-color .12s}
-.seg button:focus-visible{outline:2px solid #fff;outline-offset:1px}
-@media (hover:hover){.seg button:hover{background:rgba(255,255,255,.25)}}
-.song-body{min-width:0;flex:1}
+/* строки песен */
+:root{
+  --neutral-bg:#f3f6fb; --neutral-bg2:#e3e8ef; --neutral-ink:#3a3a4a; --neutral-ink2:#949aa5;
+}
+.s-pop{--gc:#ca0a17}
+.s-poprock{--gc:#4053b2}
+.s-modern{--gc:#11706a}
+.s-soviet{--gc:#e78499}
+.s-extra{--gc:#257ef6}
+
+.song{position:relative;display:flex;align-items:stretch;min-height:58px;background:var(--neutral-bg);overflow:hidden;transition:box-shadow .15s}
+.gswatch{width:8px;flex:0 0 8px;background:var(--gc);transition:background .15s;z-index:2}
+.gswatch .pip{display:none}
+.song-body{min-width:0;flex:1;display:flex;align-items:center;padding:9px 8px 9px 14px;position:relative;z-index:2}
+.seg{display:grid;grid-template-columns:repeat(3,var(--bw));gap:var(--bgap);flex-shrink:0;align-items:center;padding:5px 6px 5px 0;position:relative;z-index:3}
+.seg button{height:34px;border:none;background:rgba(0,0,0,.055);color:#8a8798;font:700 14px var(--body);cursor:pointer;display:grid;place-items:center;transition:background .12s,color .12s}
+.seg button:focus-visible{outline:2px solid var(--gc);outline-offset:1px}
+@media (hover:hover){.seg button:hover{background:rgba(0,0,0,.10)}}
 .seg .ok{font-size:12.5px;font-weight:700;letter-spacing:-.02em}
 .seg [data-v="must"]{font-size:17px}
-.song-title{font-weight:600;font-size:14px;line-height:1.25;text-shadow:0 1px 2px rgba(0,0,0,.15)}
-.mix-tag{font-size:9.5px;font-weight:700;letter-spacing:.05em;background:rgba(255,255,255,.25);border-radius:4px;padding:1px 5px;margin-right:5px;vertical-align:1px}
-.mix-kids{font-size:11.5px;opacity:.85;line-height:1.3;margin-top:1px}
+.song-title{font-weight:600;font-size:14px;line-height:1.25;color:var(--neutral-ink)}
+.mix-tag{font-size:9.5px;font-weight:700;letter-spacing:.05em;background:rgba(0,0,0,.35);color:#fff;border-radius:4px;padding:1px 5px;margin-right:5px;vertical-align:1px}
+.mix .song-body{flex-direction:column;align-items:flex-start;justify-content:center;gap:1px}.mix-kids{font-size:11.5px;line-height:1.3;margin-top:2px;color:var(--neutral-ink2);}
+.mix-wrap{display:grid;gap:5px}
+.mix-toggle{flex-shrink:0;width:26px;background:transparent;color:var(--neutral-ink);border:none;font-size:13px;cursor:pointer;display:grid;place-items:center;transition:transform .18s,background .12s;position:relative;z-index:3}
+.mix-toggle:hover{background:rgba(0,0,0,.05)}
+.mix-toggle.open{transform:rotate(180deg)}
+.mix-children{display:grid;gap:4px;padding-left:8px;margin-top:-1px}
+.mix-child{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--neutral-bg);padding:6px 6px 6px 12px;min-height:34px;transition:opacity .2s,filter .2s}
+.mix-child-title{font-size:12.5px;font-weight:500;color:var(--neutral-ink);line-height:1.25}
+.mix-child-btn{flex-shrink:0;width:26px;height:26px;border:none;background:#fff;color:var(--neutral-ink2);font-size:12px;cursor:pointer;display:grid;place-items:center;transition:background .12s,color .12s}
+.mix-child:hover{background:#e4e2dc}
+.mix-child.excluded{opacity:.55;filter:grayscale(.6)}
+.mix-child.excluded .mix-child-title{text-decoration:line-through;text-decoration-thickness:1.5px}
+.mix-child.excluded .mix-child-btn{background:var(--neutral-ink2);color:#fff}
 
 /* состояния */
-.song.st-must{box-shadow:0 0 0 2.5px #fff,0 6px 16px -8px rgba(40,20,90,.55)}
-.song.st-must .seg [data-v="must"]{background:#2a9d6a;border-color:#fff;color:#fff}
-.song.st-maybe .seg [data-v="maybe"]{background:#e8a825;border-color:#fff;color:#fff}
-.song.st-no{opacity:.4;filter:grayscale(.8)}
-.song.st-no .song-title{text-decoration:line-through;text-decoration-thickness:1.5px}
-.song.st-no .seg [data-v="no"]{background:#3a3a50;border-color:#fff;color:#fff}
+.song.st-must{background:var(--gc)}
+.song.st-must .song-body{background:transparent}
+.song.st-must .song-title{color:#fff;font-weight:700}
+.song.st-must .mix-kids{color:rgba(255,255,255,.82)}
+.song.st-must .mix-tag{background:rgba(255,255,255,.3)}
+.song.st-must .mix-toggle{background:var(--gc);color:#fff}
+.song.st-must .seg button{background:rgba(255,255,255,.18);color:#fff}
+.song.st-must .seg [data-v="must"]{background:#fff;color:var(--gc)}
+
+.song.st-maybe{background:var(--neutral-bg)}
+.song.st-maybe::after{content:"";position:absolute;inset:0;border:2px solid var(--gc);pointer-events:none;z-index:10}
+.song.st-maybe .song-title{color:var(--gc);font-weight:700}
+.song.st-maybe .seg button{background:rgba(0,0,0,.06);color:#8a8798}
+.song.st-maybe .seg [data-v="maybe"]{background:var(--gc);color:#fff}
+.song.st-maybe .mix-toggle{background:var(--neutral-bg);color:var(--neutral-ink)}
+
+.song.st-no{background:var(--neutral-bg2)}
+.song.st-no .gswatch{background:#c7c4bd}
+.song.st-no .song-title{color:var(--neutral-ink2);text-decoration:line-through;text-decoration-thickness:1.5px;font-weight:600}
+.song.st-no .seg button{background:rgba(0,0,0,.05);color:#8a8798;opacity:.55}
+.song.st-no .seg [data-v="no"]{background:#9a978f;color:#fff;opacity:1}
+.song.st-no .mix-toggle{background:var(--neutral-bg2);color:var(--neutral-ink2)}
+
+@media (max-width:480px){
+  .song{min-height:54px}
+  .gswatch{width:7px;flex-basis:7px}
+  .song-body{padding-left:11px;padding-right:5px}
+  .seg{grid-template-columns:repeat(3,30px);gap:var(--bgap);padding-right:5px}
+  .seg button{height:30px}
+  :root{--bw:30px;--bgap:10px}
+}
 
 /* ── Bottom bar ── */
 .spacer{height:calc(120px + var(--safe-b))}
@@ -133,6 +179,15 @@ body{font-family:var(--body);color:var(--ink);background:var(--bg);background-at
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
+/* ── Нотки при отметке «Точно надо» ── */
+.note-piece{position:fixed;z-index:40;pointer-events:none;font-size:19px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.35);transform:translate(-50%,-50%);animation:noteFly 1.2s cubic-bezier(.22,.61,.36,1) forwards}
+@keyframes noteFly{
+  0%{transform:translate(-50%,-50%) translate(0,0) rotate(0deg) scale(.6);opacity:1}
+  65%{opacity:1}
+  100%{transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) rotate(var(--rot)) scale(1);opacity:0}
+}
+@media (prefers-reduced-motion:reduce){.note-piece{display:none}}
+
 /* ── Конфетти при отправке ── */
 .confetti-piece{position:fixed;top:-12px;width:8px;height:14px;pointer-events:none;z-index:50;opacity:.95;animation-name:confettiFall;animation-timing-function:cubic-bezier(.4,.1,.6,.9);animation-fill-mode:forwards}
 @keyframes confettiFall{to{transform:translateY(112vh) rotate(var(--rot));opacity:0}}
@@ -143,21 +198,20 @@ body{font-family:var(--body);color:var(--ink);background:var(--bg);background-at
 <main id="app" class="wrap">
   <header class="hero">
     <div class="who">Пётр Родионов · пианист и вокалист</div>
-    <h1>Соберём музыкальную программу вашего мероприятия</h1>
-    <p>Отметьте песни, которые хотите услышать на своём событии. В конце нажмите «Отправить» и укажите дату. Ваши пожелания будут учтены при составлении программы.</p>
+    <h1>Соберём музыкальную программу вашего вечера</h1>
+    <p>Отметьте песни, которые вам нравятся. В конце нажмите «Отправить» и укажите дату. Ваши пожелания будут учтены при составлении программы.</p>
     <p class="note">Выбор сохраняется на этом устройстве, поэтому можно прерваться и вернуться позже.</p>
     <div class="legend">
       <div><span class="ic m">!</span><span><b>Точно надо</b> — песня обязательно прозвучит</span></div>
       <div><span class="ic y">ок</span><span><b>Можно</b> — на усмотрение Петра, по настроению зала</span></div>
-      <div><span class="ic n">✕</span><span><b>Нет</b> — не играем</span></div>
+      <div><span class="ic n">✕</span><span><b>Нет</b> — ни за какие коврижки</span></div>
     </div>
   </header>
 
-  <nav class="chips" id="chips" aria-label="Разделы"><div class="chips-row" id="chips-row"></div></nav>
   <div id="content"><div class="state">Загружаю репертуар…</div></div>
   <div class="finish" id="finish" hidden>
-    <h2>Всё отметили?</h2>
-    <p id="finish-sum">Неотмеченные песни Пётр подберёт сам.</p>
+    <h2 id="finish-title">Всё отметили?</h2>
+    <p id="finish-sum"></p>
     <button class="btn" id="finish-btn" onclick="openSheet()" disabled>Отправить</button>
   </div>
   <div class="spacer"></div>
@@ -214,6 +268,11 @@ const SECTIONS = [
   ['soviet','Советские'], ['extra','Дополнительно (редкие)']
 ]
 const STORE = 'brief-choices-v1'
+const MIN_PICKS = 12
+// Предпросмотр без сайта (открыт двойным кликом): встроенный список песен
+let PREVIEW = !/^https?:$/.test(location.protocol)
+const PREVIEW_SONGS = [{"id":"amega_letet","title":"Амега — Лететь","section":"pop","isMix":false},{"id":"hifi_7lepestok","title":"Hi-Fi — Седьмой лепесток","section":"pop","isMix":false},{"id":"korni","title":"Корни — Корни","section":"pop","isMix":false},{"id":"diskoteka_nebo","title":"Дискотека Авария — Небо","section":"pop","isMix":false},{"id":"maksim_vdol","title":"МакSим — Вдоль ночных дорог","section":"pop","isMix":false},{"id":"vetlickaya","title":"Ветлицкая — Посмотри в глаза","section":"pop","isMix":false},{"id":"otpetye","title":"Отпетые мошенники — Люби меня","section":"pop","isMix":false},{"id":"gosti","title":"Гости из будущего — Беги от меня","section":"pop","isMix":false},{"id":"quest","title":"Quest Pistols — Ты так красива","section":"pop","isMix":false},{"id":"anusi","title":"Рожден Ануси — Знаешь","section":"pop","isMix":false},{"id":"dorn_stycamen","title":"Иван Дорн — СтыцаМен","section":"pop","isMix":false},{"id":"feduk","title":"Feduk — Хлопья летят наверх","section":"pop","isMix":false},{"id":"agutin_ostrov_mix","title":"MIX: Агутин — Остров + Оле Оле","section":"pop","isMix":true,"children":[{"id":"agutin_ostrov_mix_a","title":"Агутин — Остров"},{"id":"agutin_ostrov_mix_b","title":"Агутин — Оле Оле"}]},{"id":"agutin_luna","title":"Агутин — На сиреневой луне (финал)","section":"pop","isMix":false},{"id":"korzh_ivanov_mix","title":"MIX: Макс Корж — Жить в кайф → Иванов — Боже, какой пустяк","section":"pop","isMix":true,"children":[{"id":"korzh_ivanov_a","title":"Макс Корж — Жить в кайф"},{"id":"korzh_ivanov_b","title":"Александр Иванов — Боже, какой пустяк"}]},{"id":"ivanushki_gubin_mix","title":"MIX: Иванушки — Тополиный пух + Губин — Зима","section":"pop","isMix":true,"children":[{"id":"ivanushki_gubin_a","title":"Иванушки — Тополиный пух"},{"id":"ivanushki_gubin_b","title":"Андрей Губин — Зима"}]},{"id":"ivanushki_kukla","title":"Иванушки — Кукла","section":"pop","isMix":false},{"id":"ivanushki_begi","title":"Иванушки — Беги","section":"pop","isMix":false},{"id":"basta_sansara","title":"Баста — Сансара","section":"pop","isMix":false},{"id":"basta_medlyachok","title":"Баста — Медлячок","section":"pop","isMix":false},{"id":"mega_mix_rok","title":"MIX: Рок-Острова + Носков + Жуки + Меладзе — Текила","section":"pop","isMix":true,"children":[{"id":"mega_mix_rok_a","title":"Рок-Острова — Ничего не говори"},{"id":"mega_mix_rok_b","title":"Носков — Это здорово"},{"id":"mega_mix_rok_c","title":"Жуки — Батарейка"},{"id":"mega_mix_rok_d","title":"Меладзе — Текила-любовь"}]},{"id":"meladze_brilliant","title":"MIX: Меладзе — Красиво → Бриллиантовая рука","section":"pop","isMix":true,"children":[{"id":"meladze_brilliant_a","title":"Меладзе — Красиво"},{"id":"meladze_brilliant_b","title":"Бриллиантовая рука — Помоги мне"}]},{"id":"shura","title":"Шура — Не верь слезам","section":"pop","isMix":false},{"id":"raycharles_bravo","title":"MIX: Ray Charles — Hit the Road Jack → Браво — Я то что надо","section":"pop","isMix":true,"children":[{"id":"raycharles_bravo_a","title":"Ray Charles — Hit the Road Jack"},{"id":"raycharles_bravo_b","title":"Браво — Я то что надо"}]},{"id":"alyans_leps_mix","title":"MIX: Альянс — На заре + Лепс — Рюмка водки","section":"pop","isMix":true,"children":[{"id":"alyans_leps_a","title":"Альянс — На заре"},{"id":"alyans_leps_b","title":"Лепс — Рюмка водки"}]},{"id":"neschastny","title":"Несчастный случай — Мы познакомились с тобой","section":"pop","isMix":false},{"id":"zveri","title":"Звери — Я с тобой","section":"poprock","isMix":false},{"id":"zemfira_london","title":"Земфира — Лондон","section":"poprock","isMix":false},{"id":"zemfira_pochemu","title":"Земфира — Почему","section":"poprock","isMix":false},{"id":"ddt_eto_vse","title":"ДДТ — Это всё","section":"poprock","isMix":false},{"id":"chizh_o_lyubvi","title":"Чиж и Ко — О любви","section":"poprock","isMix":false},{"id":"chizh_menuet","title":"Чиж и Ко — Менуэт","section":"poprock","isMix":false},{"id":"mumiy_troll","title":"Мумий Тролль — Невеста","section":"poprock","isMix":false},{"id":"splin_rassvet","title":"Сплин — Скоро рассвет (Выхода нет)","section":"poprock","isMix":false},{"id":"splin_zimuem","title":"Сплин — Остаёмся зимовать","section":"poprock","isMix":false},{"id":"uma_praskovia","title":"Ума Турман — Прасковья","section":"poprock","isMix":false},{"id":"uma_nalei","title":"Ума Турман — Налей мне","section":"poprock","isMix":false},{"id":"uma_papin","title":"Ума Турман — Папины дочки","section":"poprock","isMix":false},{"id":"bravo_vasya","title":"Браво — Вася","section":"poprock","isMix":false},{"id":"bravo_kak_zhal","title":"Браво — Как жаль","section":"poprock","isMix":false},{"id":"bravo_lyubite","title":"Браво — Любите девушки","section":"poprock","isMix":false},{"id":"bg_mechi","title":"БГ — Мечи, стаканы на стол","section":"poprock","isMix":false},{"id":"bg_25","title":"БГ — 25","section":"extra","isMix":false},{"id":"margulis_sh","title":"Маргулис — Шанхай блюз","section":"poprock","isMix":false},{"id":"margulis_sk","title":"Маргулис — Сакура катана","section":"poprock","isMix":false},{"id":"mashina","title":"Машина времени — Ты или я","section":"extra","isMix":false},{"id":"lyube","title":"Любэ — Позови меня тихо","section":"poprock","isMix":false},{"id":"vanya_shelk","title":"Ваня Дмитриенко — Шёлк","section":"modern","isMix":false},{"id":"zhenya_poezda","title":"Женя Трофимов — Поезда","section":"modern","isMix":false},{"id":"bond_kuhni","title":"Бонд с кнопкой — Кухни","section":"modern","isMix":false},{"id":"zoloto_motor","title":"ZOLOTO — Стихнет мотор","section":"modern","isMix":false},{"id":"luch_solnca","title":"Луч солнца золотого (Бременские)","section":"soviet","isMix":false},{"id":"segodnya_prazdnik","title":"Сегодня праздник у девчат","section":"soviet","isMix":false},{"id":"gurchenko_pesnya","title":"Гурченко — Песенка о хорошем настроении","section":"soviet","isMix":false},{"id":"schastye_vdrug","title":"Счастье вдруг (Иван Васильевич)","section":"soviet","isMix":false},{"id":"nikulin_zajcy","title":"Никулин — Песня про зайцев","section":"soviet","isMix":false},{"id":"zvenit_vyuga","title":"Звенит январская вьюга (Иван Васильевич)","section":"soviet","isMix":false},{"id":"na_tihoretskuyu","title":"На Тихорецкую (Ирония судьбы)","section":"soviet","isMix":false},{"id":"pugacheva_mimohodom","title":"Алла Пугачёва — Мимоходом","section":"soviet","isMix":false},{"id":"babkin","title":"Сергей Бабкин — Забери","section":"extra","isMix":false},{"id":"pyatnica_vesna","title":"Пятница — Весна","section":"extra","isMix":false},{"id":"pyatnica_neva","title":"Пятница — Нева","section":"extra","isMix":false},{"id":"splin_serdce","title":"Сплин — Моё сердце","section":"extra","isMix":false},{"id":"chayf_shalyay","title":"Чайф — Шаляй-валяй","section":"extra","isMix":false},{"id":"sekret_lyubov","title":"Секрет — Моя любовь на пятом этаже","section":"extra","isMix":false},{"id":"noize_vydyhay","title":"Noize MC — Выдыхай","section":"extra","isMix":false},{"id":"great_big_world","title":"A Great Big World & Aguilera — Say Something","section":"extra","isMix":false},{"id":"dream_little","title":"Dream a Little Dream of Me","section":"extra","isMix":false},{"id":"sam_smith","title":"Sam Smith — I'm Not the Only One","section":"extra","isMix":false},{"id":"monetochka","title":"Монеточка — Селфхарм","section":"extra","isMix":false},{"id":"morgenstern","title":"Моргенштерн — Последняя любовь","section":"extra","isMix":false},{"id":"strykalo","title":"Стрыкало — Яхта, парус","section":"extra","isMix":false},{"id":"sesarev","title":"Сесарев Егор — With You","section":"extra","isMix":false},{"id":"uma_prostitsya","title":"Ума Турман — Простится","section":"extra","isMix":false}]
+
 let songs = []
 let choices = {}
 try { choices = JSON.parse(localStorage.getItem(STORE) || '{}') || {} } catch { choices = {} }
@@ -224,12 +283,24 @@ async function load() {
   const box = document.getElementById('content')
   box.innerHTML = '<div class="state">Загружаю репертуар…</div>'
   try {
-    const r = await fetch('/api/brief-catalog', { cache: 'no-store' })
-    if (!r.ok) throw new Error()
-    const data = await r.json()
+    let data
+    if (PREVIEW) {
+      data = { songs: PREVIEW_SONGS }
+    } else {
+      try {
+        const r = await fetch('/api/brief-catalog', { cache: 'no-store' })
+        if (!r.ok) throw new Error()
+        data = await r.json()
+      } catch (e) {
+        if (location.hostname.endsWith('vercel.app')) throw e
+        // Сайт без своего API (например, локальный сервер для теста) — встроенный список
+        PREVIEW = true
+        data = { songs: PREVIEW_SONGS }
+      }
+    }
     songs = data.songs || []
-    // убрать выбор по песням, которых больше нет в репертуаре
-    const ids = new Set(songs.map(s => s.id))
+    // убрать выбор по песням, которых больше нет в репертуаре (включая песни внутри мэшапов)
+    const ids = new Set(songs.flatMap(s => s.isMix ? [s.id, ...(s.children || []).map(c => c.id)] : [s.id]))
     Object.keys(choices).forEach(k => { if (!ids.has(k)) delete choices[k] })
     render()
   } catch {
@@ -238,40 +309,80 @@ async function load() {
 }
 
 function render() {
-  let html = '', chips = ''
+  let html = ''
   for (const [sec, label] of SECTIONS) {
     const list = songs.filter(s => s.section === sec)
     if (!list.length) continue
-    chips += `<button class="chip" style="background:var(--c-${sec})" onclick="jump('${sec}')">${label}<span>${list.length}</span></button>`
-    html += `<section class="sec" id="sec-${sec}"><div class="sec-hd"><h2>${label}<small>${list.length}</small></h2><div class="cols" aria-hidden="true"><span>Нет</span><span>Можно</span><span>Надо</span></div></div><div class="list">`
+    html += `<section class="sec" id="sec-${sec}"><div class="sec-hd"><h2>${label}</h2><div class="cols" aria-hidden="true"><span>Нет</span><span>Можно</span><span>Надо</span></div></div><div class="list">`
     for (const s of list) html += card(s)
     html += '</div></section>'
   }
-  document.getElementById('chips-row').innerHTML = chips
   document.getElementById('content').innerHTML = html || '<div class="state">Список песен пуст</div>'
   updateBar()
 }
 
+const expandedMixes = new Set()
+
 function card(s) {
   const st = choices[s.id]
   const title = esc(s.isMix ? s.title.replace(/^MIX:\s*/i, '') : s.title)
-  const kids = s.isMix && s.children?.length ? `<div class="mix-kids">${s.children.map(esc).join(' → ')}</div>` : ''
-  return `<div class="song s-${s.section}${st ? ' st-' + st : ''}" id="song-${esc(s.id)}">
-    <div class="song-body">
-      <div class="song-title">${s.isMix ? '<span class="mix-tag">MIX</span>' : ''}${title}</div>
-      ${kids}
-    </div>
-    <div class="seg" role="group" aria-label="${title}">
+  const seg = `<div class="seg" role="group" aria-label="${title}">
       <button data-v="no" title="Нет" aria-label="Нет" aria-pressed="${st==='no'}" onclick="pick('${s.id}','no')">✕</button>
-      <button data-v="maybe" title="Можно" aria-label="Можно" aria-pressed="${st==='maybe'}" onclick="pick('${s.id}','maybe')"><span class="ok">ок</span></button>
-      <button data-v="must" title="Надо" aria-label="Надо" aria-pressed="${st==='must'}" onclick="pick('${s.id}','must')">!</button>
+      <button data-v="maybe" title="Можно" aria-label="Можно" aria-pressed="${st==='maybe'}" onclick="pick('${s.id}','maybe')"><span class="ok">ОК</span></button>
+      <button data-v="must" title="Надо" aria-label="Надо" aria-pressed="${st==='must'}" onclick="pick('${s.id}','must',event)">!</button>
+    </div>`
+
+  if (!s.isMix) {
+    return `<div class="song s-${s.section}${st ? ' st-' + st : ''}" id="song-${esc(s.id)}">
+    <div class="gswatch"><span class="pip"></span></div>
+    <div class="song-body">
+      <div class="song-title">${title}</div>
     </div>
+    ${seg}
+  </div>`
+  }
+
+  // ── MIX: заголовок + стрелка-раскрытие + список песен внутри ──
+  const kids = s.children || []
+  const open = expandedMixes.has(s.id)
+  const preview = !open && kids.length ? `<div class="mix-kids">${kids.map(c => esc(c.title)).join(' → ')}</div>` : ''
+  const childrenHtml = open ? `<div class="mix-children">${kids.map(c => {
+    const excluded = choices[c.id] === 'no'
+    return `<div class="mix-child${excluded ? ' excluded' : ''}">
+      <span class="mix-child-title">${esc(c.title)}</span>
+      <button class="mix-child-btn" aria-pressed="${excluded}" title="Не играть эту песню" onclick="toggleMixChild('${esc(c.id)}')">✕</button>
+    </div>`
+  }).join('')}</div>` : ''
+
+  return `<div class="mix-wrap">
+    <div class="song s-${s.section} mix${st ? ' st-' + st : ''}" id="song-${esc(s.id)}">
+      <div class="gswatch"><span class="pip"></span></div>
+      <button class="mix-toggle${open ? ' open' : ''}" aria-expanded="${open}" aria-label="${open ? 'Скрыть' : 'Показать'} песни попурри" onclick="toggleMix('${esc(s.id)}')">▾</button>
+      <div class="song-body">
+        <div class="song-title"><span class="mix-tag">MIX</span>${title}</div>
+        ${preview}
+      </div>
+      ${seg}
+    </div>
+    ${childrenHtml}
   </div>`
 }
 
-function pick(id, v) {
+function toggleMix(id) {
+  if (expandedMixes.has(id)) expandedMixes.delete(id); else expandedMixes.add(id)
+  render()
+}
+
+function toggleMixChild(childId) {
+  if (choices[childId] === 'no') delete choices[childId]; else choices[childId] = 'no'
+  try { localStorage.setItem(STORE, JSON.stringify(choices)) } catch {}
+  render()
+}
+
+function pick(id, v, ev) {
   // повторное нажатие снимает выбор
-  if (choices[id] === v) delete choices[id]; else choices[id] = v
+  const wasOn = choices[id] === v
+  if (wasOn) delete choices[id]; else choices[id] = v
   try { localStorage.setItem(STORE, JSON.stringify(choices)) } catch {}
   const el = document.getElementById('song-' + id)
   if (el) {
@@ -279,7 +390,32 @@ function pick(id, v) {
     if (choices[id]) el.classList.add('st-' + choices[id])
     el.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === choices[id])))
   }
+  if (!wasOn && v === 'must' && ev && ev.currentTarget) noteBurst(ev.currentTarget)
   updateBar()
+}
+
+function noteBurst(el) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  const r = el.getBoundingClientRect()
+  const cx = r.left + r.width / 2, cy = r.top + r.height / 2
+  const notes = ['♪', '♫', '♬']
+  const n = 3 + Math.floor(Math.random() * 5)
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('span')
+    s.className = 'note-piece'
+    s.textContent = notes[Math.floor(Math.random() * notes.length)]
+    const angle = Math.random() * Math.PI * 2
+    const dist = 38 + Math.random() * 30
+    s.style.left = cx + 'px'
+    s.style.top = cy + 'px'
+    s.style.setProperty('--dx', Math.cos(angle) * dist + 'px')
+    s.style.setProperty('--dy', Math.sin(angle) * dist - 46 + 'px')
+    s.style.setProperty('--rot', (Math.random() * 80 - 40) + 'deg')
+    s.style.animationDuration = (1.05 + Math.random() * 0.35) + 's'
+    document.body.appendChild(s)
+    s.addEventListener('animationend', () => s.remove())
+    setTimeout(() => s.remove(), 1500)
+  }
 }
 
 function tally() {
@@ -289,18 +425,36 @@ function tally() {
   return t
 }
 
+function pluralizeSongs(n) {
+  const m10 = n % 10, m100 = n % 100
+  if (m10 === 1 && m100 !== 11) return 'песню'
+  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return 'песни'
+  return 'песен'
+}
+
 function updateBar() {
   const t = tally()
   const any = t.must + t.maybe + t.no
+  const picked = t.must + t.maybe
   document.getElementById('counts').innerHTML = any
-    ? `<span class="nw">Надо <b>${t.must}</b></span> <span class="nw">Можно <b>${t.maybe}</b></span> <span class="nw">Нет <b>${t.no}</b></span><br><span class="nw">Не отмечено: ${t.left}</span>`
+    ? `<span class="nw">Нет <b>${t.no}</b></span> <span class="nw">Можно <b>${t.maybe}</b></span> <span class="nw">Надо <b>${t.must}</b></span>`
     : 'Отметьте песни, которые хотите услышать'
-  document.getElementById('send-btn').disabled = !(t.must + t.maybe)
-  document.getElementById('finish-btn').disabled = !(t.must + t.maybe)
+  document.getElementById('send-btn').disabled = picked < MIN_PICKS
+  document.getElementById('finish-btn').disabled = picked < MIN_PICKS
   document.getElementById('finish').hidden = !songs.length
-  document.getElementById('finish-sum').textContent = (t.must + t.maybe)
-    ? (t.left ? `Не отмечено ${t.left}: эти песни на усмотрение Петра.` : 'Вы отметили весь репертуар. Браво! 👏')
-    : 'Отметьте хотя бы одну песню как «Точно надо» или «Можно».'
+  let finishTitle, finishSub
+  if (picked < MIN_PICKS) {
+    finishTitle = `Маловато будет — отметьте ещё как минимум ${MIN_PICKS - picked} ${pluralizeSongs(MIN_PICKS - picked)}.`
+    finishSub = ''
+  } else if (t.left) {
+    finishTitle = 'Отлично!'
+    finishSub = `Вы отметили ${picked} ${pluralizeSongs(picked)}, остальные ${t.left} — на моё усмотрение.`
+  } else {
+    finishTitle = 'Вы отметили весь репертуар. Браво! 👏'
+    finishSub = ''
+  }
+  document.getElementById('finish-title').textContent = finishTitle
+  document.getElementById('finish-sum').textContent = finishSub
 }
 
 function jump(sec) {
