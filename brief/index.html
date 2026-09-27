@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#d4d0f2">
-<title>Выбор песен для концерта — Пётр Родионов</title>
-<meta name="description" content="Отметьте песни, которые хотите услышать на концерте">
-<meta property="og:title" content="Выбор песен для концерта">
+<title>Выбор песен — Пётр Родионов</title>
+<meta name="description" content="Отметьте песни, которые хотите услышать на мероприятии">
+<meta property="og:title" content="Выбор песен для мероприятия">
 <meta property="og:description" content="Пётр Родионов — отметьте песни, которые хотите услышать">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -89,7 +89,8 @@ body{font-family:var(--body);color:var(--ink);background:var(--bg);background-at
 .finish h2{font-family:var(--display);font-weight:700;font-size:18px;margin-bottom:6px}
 .finish p{font-size:14px;color:var(--ink2);margin-bottom:14px}
 .finish .btn{width:100%;max-width:320px}
-.bar{position:fixed;left:0;right:0;bottom:0;z-index:10;padding:12px 16px calc(12px + var(--safe-b));background:rgba(248,246,255,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line)}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:10;padding:12px 16px calc(12px + var(--safe-b));background:rgba(248,246,255,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);transition:transform .25s ease,opacity .2s ease}
+.bar.hide{transform:translateY(120%);opacity:0;pointer-events:none}
 .bar-in{max-width:600px;margin:0 auto;display:flex;align-items:center;gap:12px}
 .counts{flex:1;min-width:0;font-size:14px;color:var(--ink2);line-height:1.35}
 .counts b{color:var(--ink);font-weight:600}
@@ -126,9 +127,15 @@ body{font-family:var(--body);color:var(--ink);background:var(--bg);background-at
 .done .big{font-size:54px;line-height:1}
 .done h2{font-family:var(--display);font-weight:700;font-size:26px;margin:16px 0 10px}
 .done p{color:var(--ink2);font-size:16px;max-width:28em;margin:0 auto}
+.done .done-thanks{margin-top:8px}
+.btn-link{display:block;margin:14px auto 0;background:none;border:none;color:var(--ink2);font:600 13px var(--body);text-decoration:underline;cursor:pointer;padding:6px}
 .done .btn{margin-top:24px}
 
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ── Конфетти при отправке ── */
+.confetti-piece{position:fixed;top:-12px;width:8px;height:14px;pointer-events:none;z-index:50;opacity:.95;animation-name:confettiFall;animation-timing-function:cubic-bezier(.4,.1,.6,.9);animation-fill-mode:forwards}
+@keyframes confettiFall{to{transform:translateY(112vh) rotate(var(--rot));opacity:0}}
 </style>
 </head>
 <body>
@@ -136,13 +143,13 @@ body{font-family:var(--body);color:var(--ink);background:var(--bg);background-at
 <main id="app" class="wrap">
   <header class="hero">
     <div class="who">Пётр Родионов · пианист и вокалист</div>
-    <h1>Соберём программу вашего концерта</h1>
-    <p>Отметьте песни, которые хотите услышать на своём мероприятии. В конце нажмите «Отправить» и укажите дату события. Ваши пожелания будут учтены при составлении программы.</p>
+    <h1>Соберём музыкальную программу вашего мероприятия</h1>
+    <p>Отметьте песни, которые хотите услышать на своём событии. В конце нажмите «Отправить» и укажите дату. Ваши пожелания будут учтены при составлении программы.</p>
     <p class="note">Выбор сохраняется на этом устройстве, поэтому можно прерваться и вернуться позже.</p>
     <div class="legend">
       <div><span class="ic m">!</span><span><b>Точно надо</b> — песня обязательно прозвучит</span></div>
       <div><span class="ic y">ок</span><span><b>Можно</b> — на усмотрение Петра, по настроению зала</span></div>
-      <div><span class="ic n">✕</span><span><b>Нет</b> — эту песню не играем</span></div>
+      <div><span class="ic n">✕</span><span><b>Нет</b> — не играем</span></div>
     </div>
   </header>
 
@@ -159,8 +166,10 @@ body{font-family:var(--body);color:var(--ink);background:var(--bg);background-at
 <section class="done wrap" id="done" aria-live="polite">
   <div class="big">🎹</div>
   <h2>Список у Петра</h2>
-  <p id="done-text">Он свяжется с вами, чтобы обсудить детали.</p>
-  <button class="btn ghost" onclick="backToList()">Изменить выбор</button>
+  <p id="done-text"></p>
+  <p class="done-thanks">Спасибо, вы супер! Ваши пожелания будут учтены при составлении программы.</p>
+  <button class="btn" onclick="confettiBurst()">Отлично!</button>
+  <button class="btn-link" onclick="backToList()">Изменить выбор</button>
 </section>
 
 <div class="bar" id="bar">
@@ -177,6 +186,10 @@ body{font-family:var(--body);color:var(--ink);background:var(--bg);background-at
     <div class="field">
       <label for="f-date">Дата события <i>*</i></label>
       <input type="date" id="f-date" required>
+    </div>
+    <div class="field">
+      <label for="f-title">Название события</label>
+      <input type="text" id="f-title" maxlength="120" placeholder="Свадьба, юбилей, корпоратив…">
     </div>
     <div class="field">
       <label for="f-name">Ваше имя</label>
@@ -198,7 +211,7 @@ body{font-family:var(--body);color:var(--ink);background:var(--bg);background-at
 <script>
 const SECTIONS = [
   ['pop','Поп хиты'], ['poprock','Поп-рок'], ['modern','Современное'],
-  ['soviet','Советские'], ['extra','Доп (редкие)']
+  ['soviet','Советские'], ['extra','Дополнительно (редкие)']
 ]
 const STORE = 'brief-choices-v1'
 let songs = []
@@ -245,7 +258,7 @@ function card(s) {
   const kids = s.isMix && s.children?.length ? `<div class="mix-kids">${s.children.map(esc).join(' → ')}</div>` : ''
   return `<div class="song s-${s.section}${st ? ' st-' + st : ''}" id="song-${esc(s.id)}">
     <div class="song-body">
-      <div class="song-title">${s.isMix ? '<span class="mix-tag">ПОПУРРИ</span>' : ''}${title}</div>
+      <div class="song-title">${s.isMix ? '<span class="mix-tag">MIX</span>' : ''}${title}</div>
       ${kids}
     </div>
     <div class="seg" role="group" aria-label="${title}">
@@ -286,7 +299,7 @@ function updateBar() {
   document.getElementById('finish-btn').disabled = !(t.must + t.maybe)
   document.getElementById('finish').hidden = !songs.length
   document.getElementById('finish-sum').textContent = (t.must + t.maybe)
-    ? (t.left ? `Не отмечено ${t.left}: эти песни Пётр подберёт сам.` : 'Вы отметили весь репертуар.')
+    ? (t.left ? `Не отмечено ${t.left}: эти песни на усмотрение Петра.` : 'Вы отметили весь репертуар. Браво! 👏')
     : 'Отметьте хотя бы одну песню как «Точно надо» или «Можно».'
 }
 
@@ -321,6 +334,7 @@ async function submitBrief() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         date,
+        eventTitle: document.getElementById('f-title').value,
         name: document.getElementById('f-name').value,
         comment: document.getElementById('f-comment').value,
         website: document.getElementById('f-website').value,
@@ -331,11 +345,13 @@ async function submitBrief() {
     if (!r.ok || !data.ok) throw new Error(data.error || 'Не удалось отправить. Попробуйте ещё раз.')
     closeSheet()
     const [y, m, d] = date.split('-')
-    document.getElementById('done-text').textContent = `Дата события: ${d}.${m}.${y}. Ваши пожелания будут учтены при составлении программы.`
+    const eventTitle = document.getElementById('f-title').value.trim()
+    document.getElementById('done-text').textContent = `Дата события: ${d}.${m}.${y}.${eventTitle ? ' ' + eventTitle : ''}`
     document.getElementById('app').style.display = 'none'
     document.getElementById('bar').style.display = 'none'
     document.getElementById('done').classList.add('show')
     window.scrollTo(0, 0)
+    confettiBurst()
   } catch (e) {
     err.textContent = e.message
   } finally {
@@ -343,11 +359,41 @@ async function submitBrief() {
   }
 }
 
+function confettiBurst() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  const colors = ['#f08030','#e85060','#9060e0','#4030b0','#30b880','#1880c0','#e8a825','#c02050']
+  const frag = document.createDocumentFragment()
+  const pieces = []
+  for (let i = 0; i < 90; i++) {
+    const el = document.createElement('span')
+    el.className = 'confetti-piece'
+    const dur = 1.8 + Math.random() * 1.4
+    el.style.left = Math.random() * 100 + 'vw'
+    el.style.background = colors[i % colors.length]
+    el.style.setProperty('--rot', (360 + Math.random() * 360) + 'deg')
+    el.style.animationDuration = dur + 's'
+    el.style.animationDelay = (Math.random() * 0.3) + 's'
+    if (Math.random() < 0.5) el.style.borderRadius = '50%'
+    frag.appendChild(el)
+    pieces.push(el)
+  }
+  document.body.appendChild(frag)
+  setTimeout(() => pieces.forEach(el => el.remove()), 3600)
+}
+
 function backToList() {
   document.getElementById('done').classList.remove('show')
   document.getElementById('app').style.display = ''
   document.getElementById('bar').style.display = ''
 }
+
+// Прячем нижнюю панель, когда виден блок «Всё отметили?», — чтобы «Отправить» не дублировался
+const finishEl = document.getElementById('finish')
+const barEl = document.getElementById('bar')
+new IntersectionObserver(
+  entries => entries.forEach(e => barEl.classList.toggle('hide', e.isIntersecting)),
+  { threshold: 0.4 }
+).observe(finishEl)
 
 load()
 </script>
