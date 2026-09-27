@@ -51,6 +51,7 @@ module.exports = async function handler(req, res) {
 
   const date = clean(body.date, 10)
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'Укажите дату концерта' })
+  const eventTitle = clean(body.eventTitle, 120)
   const name = clean(body.name, 80)
   const comment = clean(body.comment, 1500)
   const choices = body.choices && typeof body.choices === 'object' ? body.choices : {}
@@ -70,7 +71,7 @@ module.exports = async function handler(req, res) {
 
   const [y, m, d] = date.split('-')
   const dateRu = `${d}.${m}.${y}`
-  const title = fileSafe(`Заявка ${dateRu}${name ? ' ' + name : ''}`) || 'Заявка'
+  const title = fileSafe(`Заявка ${dateRu}${eventTitle ? ' ' + eventTitle : ''}${name ? ' ' + name : ''}`) || 'Заявка'
   const submittedAt = new Date().toISOString()
 
   const project = {
@@ -78,7 +79,7 @@ module.exports = async function handler(req, res) {
     concertName: title,
     sets: { '1': groups.must.flatMap(setItems), '2': [], 'x': groups.maybe.flatMap(setItems) },
     brief: {
-      date, name, comment, submittedAt,
+      date, eventTitle, name, comment, submittedAt,
       must: groups.must.map(s => s.title),
       maybe: groups.maybe.map(s => s.title),
       no: groups.no.map(s => s.title),
@@ -98,6 +99,7 @@ module.exports = async function handler(req, res) {
   const text = [
     '🎹 Новая заявка на концерт',
     `📅 ${dateRu}`,
+    eventTitle ? eventTitle : null,
     name ? `👤 ${name}` : null,
     comment ? `💬 ${comment}` : null,
     '',
