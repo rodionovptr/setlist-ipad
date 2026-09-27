@@ -10,7 +10,7 @@ module.exports = async function handler(req, res) {
       title: s.title,
       section: s.section,
       isMix: !!s.isMix,
-      children: s.isMix ? (s.children || []).map(c => c.title) : undefined
+      children: s.isMix ? (s.children || []).map(c => ({ id: c.id, title: c.title })) : undefined
     }))
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=600')
     res.status(200).json({ songs: list })

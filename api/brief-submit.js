@@ -8,14 +8,22 @@ const STATES = new Set(['must', 'maybe', 'no'])
 const clean = (v, max) => String(v || '').replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, max)
 const fileSafe = v => v.replace(/[<>:"/\\|?*]/g, '').replace(/\s+/g, ' ').trim()
 
-function setItems(song) {
+// choices[childId] === 'no' — эту песню внутри мэшапа заказчик попросил не играть
+function setItems(song, choices) {
   if (song.isMix) {
-    return (song.children || []).map(c => ({
-      id: c.id, title: c.title, section: song.section, exactFile: c.exactFile || null,
-      isMixChild: true, mixParentId: song.id, mixParentTitle: song.title
-    }))
+    return (song.children || [])
+      .filter(c => choices[c.id] !== 'no')
+      .map(c => ({
+        id: c.id, title: c.title, section: song.section, exactFile: c.exactFile || null,
+        isMixChild: true, mixParentId: song.id, mixParentTitle: song.title
+      }))
   }
   return [{ id: song.id, title: song.title, section: song.section, exactFile: song.exactFile || null, files: song.files || null }]
+}
+// для сообщения в Telegram: какие песни из мэшапа исключены
+function mixExcluded(song, choices) {
+  if (!song.isMix) return []
+  return (song.children || []).filter(c => choices[c.id] === 'no').map(c => c.title)
 }
 
 async function sendTelegram(text) {
@@ -77,7 +85,7 @@ module.exports = async function handler(req, res) {
   const project = {
     projectName: title,
     concertName: title,
-    sets: { '1': groups.must.flatMap(setItems), '2': [], 'x': groups.maybe.flatMap(setItems) },
+    sets: { '1': groups.must.flatMap(s => setItems(s, choices)), '2': [], 'x': groups.maybe.flatMap(s => setItems(s, choices)) },
     brief: {
       date, eventTitle, name, comment, submittedAt,
       must: groups.must.map(s => s.title),
@@ -95,7 +103,10 @@ module.exports = async function handler(req, res) {
     savedAs = path
   } catch (e) { console.error(e); diskError = e.message }
 
-  const list = arr => arr.map(s => `• ${s.title}`).join('\n')
+  const list = arr => arr.map(s => {
+    const ex = mixExcluded(s, choices)
+    return `• ${s.title}` + (ex.length ? ` (без: ${ex.join(', ')})` : '')
+  }).join('\n')
   const text = [
     '🎹 Новая заявка на концерт',
     `📅 ${dateRu}`,
