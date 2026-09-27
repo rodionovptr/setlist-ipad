@@ -481,7 +481,7 @@ function updateBar() {
   document.getElementById('finish').hidden = !songs.length
   let finishTitle, finishSub
   if (picked < MIN_PICKS) {
-    finishTitle = `Маловато будет — отметьте ещё как минимум ${MIN_PICKS - picked} ${pluralizeSongs(MIN_PICKS - picked)}.`
+    finishTitle = `Пожалуйста, отметьте ещё как минимум ${MIN_PICKS - picked} ${pluralizeSongs(MIN_PICKS - picked)}.`
     finishSub = ''
   } else if (t.left) {
     finishTitle = 'Отлично!'
