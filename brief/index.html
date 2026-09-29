@@ -159,6 +159,9 @@ body{font-family:var(--body);color:var(--ink);background:var(--page-bg);min-heig
 .finish .btn{width:100%;max-width:320px}
 .bar{position:fixed;left:0;right:0;bottom:0;z-index:10;padding:12px 16px calc(12px + var(--safe-b));background:rgba(248,246,255,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);transition:transform .25s ease,opacity .2s ease}
 .bar.hide{transform:translateY(120%);opacity:0;pointer-events:none}
+.bar.finish-visible #send-btn{display:none}
+.bar.done-bar #counts,.bar.done-bar #send-btn{display:none}
+.bar.done-bar .bar-in{justify-content:flex-end}
 .bar-in{max-width:600px;margin:0 auto;display:flex;align-items:center;gap:12px}
 .counts{flex:1;min-width:0;font-size:14px;color:var(--ink2);line-height:1.35}
 .counts b{color:var(--ink);font-weight:600}
@@ -233,7 +236,7 @@ html:not(.dark-theme) .who{text-shadow:0 0 6px rgba(227,233,242,.95),0 0 14px rg
 @media (hover:hover){.theme-btn:hover{background:rgba(0,0,0,.10)}}
 .theme-btn svg{width:17px;height:17px}
 .theme-btn .i-sun{display:none}
-.sound-btn{position:fixed;top:calc(16px + var(--safe-t) + var(--bw) + 8px);right:16px;z-index:11;width:var(--bw);height:var(--bw);border:none;border-radius:0;background:rgba(0,0,0,.055);color:#8a8798;display:grid;place-items:center;cursor:pointer;transition:background .12s}
+.sound-btn{position:relative;top:auto;right:auto;z-index:1;flex:0 0 var(--bw);width:var(--bw);height:var(--bw);border:none;border-radius:0;background:rgba(0,0,0,.055);color:#8a8798;display:grid;place-items:center;cursor:pointer;transition:background .12s}
 .sound-btn svg{width:17px;height:17px}
 .sound-btn .i-off{display:none}
 @media (hover:hover){.sound-btn:hover{background:rgba(0,0,0,.10)}}
@@ -398,11 +401,6 @@ html:not(.dark-theme) .who{text-shadow:0 0 6px rgba(227,233,242,.95),0 0 14px rg
   <div class="spacer"></div>
 </main>
 
-<button class="sound-btn" id="sound-btn" type="button" onclick="toggleSound()" aria-label="Звук интерфейса" aria-pressed="true" title="Звук включён">
-  <svg class="i-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
-  <svg class="i-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m17 9 5 6m0-6-5 6"/></svg>
-</button>
-
 <section class="done wrap" id="done" aria-live="polite">
   <div class="done-main">
     <div class="big">🎹</div>
@@ -416,6 +414,10 @@ html:not(.dark-theme) .who{text-shadow:0 0 6px rgba(227,233,242,.95),0 0 14px rg
 
 <div class="bar" id="bar">
   <div class="bar-in">
+    <button class="sound-btn" type="button" onclick="toggleSound()" aria-label="Звук интерфейса" aria-pressed="true" title="Звук включён">
+      <svg class="i-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
+      <svg class="i-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m17 9 5 6m0-6-5 6"/></svg>
+    </button>
     <div class="counts" id="counts">Отметьте песни</div>
     <button class="btn" id="send-btn" onclick="openSheet()" disabled>Отправить</button>
   </div>
@@ -478,60 +480,88 @@ let choices = {}
 try { choices = JSON.parse(localStorage.getItem(STORE) || '{}') || {} } catch { choices = {} }
 let soundEnabled = true
 try { soundEnabled = localStorage.getItem(SOUND_STORE) !== 'off' } catch {}
-let audioContext = null
 
 function updateSoundButton() {
-  const button = document.getElementById('sound-btn')
-  if (!button) return
-  button.classList.toggle('muted', !soundEnabled)
-  const label = soundEnabled ? 'Звук включён' : 'Звук выключен'
-  button.setAttribute('aria-label', 'Звук интерфейса')
-  button.setAttribute('aria-pressed', String(soundEnabled))
-  button.title = label
+  document.querySelectorAll('.sound-btn').forEach(button => {
+    button.classList.toggle('muted', !soundEnabled)
+    button.setAttribute('aria-label', 'Звук интерфейса')
+    button.setAttribute('aria-pressed', String(soundEnabled))
+    button.title = soundEnabled ? 'Звук включён' : 'Звук выключен'
+  })
 }
 
 function toggleSound() {
   soundEnabled = !soundEnabled
   try { localStorage.setItem(SOUND_STORE, soundEnabled ? 'on' : 'off') } catch {}
+  if (!soundEnabled) {
+    activeAudioPlayers.forEach(player => { player.pause(); player.currentTime = 0 })
+    activeAudioPlayers.clear()
+  }
   updateSoundButton()
 }
 
-function playNote(frequency, delay, duration, volume) {
+const SOUND_EVENTS = {
+  no: [{ f: 330, t: 0, d: .13, v: .12 }, { f: 277, t: .065, d: .14, v: .10 }],
+  maybe: [{ f: 440, t: 0, d: .17, v: .12 }],
+  must: [{ f: 587, t: 0, d: .16, v: .11 }, { f: 784, t: .07, d: .19, v: .11 }],
+  celebrate: [
+    { f: 523.25, t: 0, d: .52, v: .07 },
+    { f: 659.25, t: .025, d: .50, v: .07 },
+    { f: 783.99, t: .05, d: .48, v: .07 },
+    { f: 1046.5, t: .075, d: .46, v: .06 }
+  ]
+}
+const soundUrls = new Map()
+const activeAudioPlayers = new Set()
+
+function makeSoundUrl(name) {
+  if (soundUrls.has(name)) return soundUrls.get(name)
+  const events = SOUND_EVENTS[name]
+  const sampleRate = 22050
+  const seconds = Math.max(...events.map(e => e.t + e.d)) + .025
+  const frames = Math.ceil(sampleRate * seconds)
+  const data = new ArrayBuffer(44 + frames * 2)
+  const view = new DataView(data)
+  const write = (offset, value) => [...value].forEach((char, i) => view.setUint8(offset + i, char.charCodeAt(0)))
+  write(0, 'RIFF'); view.setUint32(4, 36 + frames * 2, true); write(8, 'WAVE')
+  write(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true)
+  view.setUint16(22, 1, true); view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * 2, true)
+  view.setUint16(32, 2, true); view.setUint16(34, 16, true); write(36, 'data'); view.setUint32(40, frames * 2, true)
+  for (let i = 0; i < frames; i++) {
+    const time = i / sampleRate
+    let sample = 0
+    events.forEach(({ f, t, d, v }) => {
+      const local = time - t
+      if (local < 0 || local > d) return
+      const envelope = Math.min(1, local / .012) * Math.exp(-4.2 * local / d)
+      sample += (Math.sin(2 * Math.PI * f * local) * .82 + Math.sin(4 * Math.PI * f * local) * .18) * v * envelope
+    })
+    view.setInt16(44 + i * 2, Math.max(-1, Math.min(1, sample)) * 32767, true)
+  }
+  const url = URL.createObjectURL(new Blob([data], { type: 'audio/wav' }))
+  soundUrls.set(name, url)
+  return url
+}
+
+function playSound(name) {
   if (!soundEnabled) return
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext
-  if (!AudioContextClass) return
   try {
-    audioContext ||= new AudioContextClass()
-    if (audioContext.state === 'suspended') audioContext.resume().catch(() => {})
-    const start = audioContext.currentTime + delay
-    const oscillator = audioContext.createOscillator()
-    const gain = audioContext.createGain()
-    oscillator.type = 'sine'
-    oscillator.frequency.setValueAtTime(frequency, start)
-    gain.gain.setValueAtTime(0.0001, start)
-    gain.gain.exponentialRampToValueAtTime(volume, start + 0.012)
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration)
-    oscillator.connect(gain)
-    gain.connect(audioContext.destination)
-    oscillator.start(start)
-    oscillator.stop(start + duration + 0.02)
+    const player = new Audio(makeSoundUrl(name))
+    player.volume = .45
+    activeAudioPlayers.add(player)
+    const cleanup = () => activeAudioPlayers.delete(player)
+    player.addEventListener('ended', cleanup, { once: true })
+    player.addEventListener('error', cleanup, { once: true })
+    player.play().catch(cleanup)
   } catch {}
 }
 
 function playChoiceSound(choice) {
-  if (choice === 'no') {
-    playNote(330, 0, 0.085, 0.035)
-    playNote(277, 0.055, 0.09, 0.03)
-  } else if (choice === 'maybe') {
-    playNote(440, 0, 0.11, 0.035)
-  } else {
-    playNote(587, 0, 0.09, 0.03)
-    playNote(740, 0.055, 0.12, 0.035)
-  }
+  playSound(choice === 'no' ? 'no' : choice === 'must' ? 'must' : 'maybe')
 }
 
 function playCelebrationChord() {
-  ;[523, 659, 784, 988].forEach((frequency, i) => playNote(frequency, i * 0.035, 0.42, 0.025))
+  playSound('celebrate')
 }
 
 const esc = v => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))
@@ -749,7 +779,7 @@ function updateBar() {
   const picked = t.must + t.maybe
   const any = picked
   document.getElementById('counts').innerHTML = any
-    ? `<span class="nw">Можно <b>${t.maybe}</b></span> <span class="nw">Надо <b>${t.must}</b></span>`
+    ? `Вы выбрали ${picked} ${pluralizeSongs(picked)}`
     : 'Отметьте песни, которые хотите услышать'
   document.getElementById('send-btn').disabled = picked < MIN_PICKS
   document.getElementById('finish-btn').disabled = picked < MIN_PICKS
@@ -848,7 +878,7 @@ async function submitBrief() {
     closeSheet()
     fillDone()
     document.getElementById('app').style.display = 'none'
-    document.getElementById('bar').style.display = 'none'
+    document.getElementById('bar').classList.add('done-bar')
     document.getElementById('done').classList.add('show')
     fitDone(); if (document.fonts) document.fonts.ready.then(fitDone)
     window.scrollTo(0, 0)
@@ -926,14 +956,14 @@ function editLink() {
 function backToList() {
   document.getElementById('done').classList.remove('show')
   document.getElementById('app').style.display = ''
-  document.getElementById('bar').style.display = ''
+  document.getElementById('bar').classList.remove('done-bar')
 }
 
 // Прячем нижнюю панель, когда виден блок «Всё отметили?», — чтобы «Отправить» не дублировался
 const finishEl = document.getElementById('finish')
 const barEl = document.getElementById('bar')
 new IntersectionObserver(
-  entries => entries.forEach(e => barEl.classList.toggle('hide', e.isIntersecting)),
+  entries => entries.forEach(e => barEl.classList.toggle('finish-visible', e.isIntersecting)),
   { threshold: 0.4 }
 ).observe(finishEl)
 
