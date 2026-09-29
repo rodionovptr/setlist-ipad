@@ -183,7 +183,7 @@ body{font-family:var(--body);color:var(--ink);background:var(--page-bg);min-heig
 .field label i{font-style:normal;color:var(--accent)}
 .field input{text-overflow:ellipsis}
 .field input,.field textarea{width:100%;min-width:0;max-width:100%;font:16px var(--body);color:var(--ink);background:#fff;border:1.5px solid #dcd8f0;border-radius:0;padding:12px 14px;outline:none}
-.field input[type="date"]{display:block;min-width:0;max-width:100%;width:100%}
+.field input[type="date"]{display:block;box-sizing:border-box;min-width:0;width:calc(100vw - 36px);max-width:100%}
 .field input:focus,.field textarea:focus{border-color:#8a70e0}
 .field textarea{min-height:92px;resize:vertical}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
