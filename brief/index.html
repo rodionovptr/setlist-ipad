@@ -178,6 +178,7 @@ body{font-family:var(--body);color:var(--ink);background:var(--page-bg);min-heig
 .field{margin-bottom:14px}
 .field label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
 .field label i{font-style:normal;color:var(--accent)}
+.field input{text-overflow:ellipsis}
 .field input,.field textarea{width:100%;font:16px var(--body);color:var(--ink);background:#fff;border:1.5px solid #dcd8f0;border-radius:0;padding:12px 14px;outline:none}
 .field input:focus,.field textarea:focus{border-color:#8a70e0}
 .field textarea{min-height:92px;resize:vertical}
@@ -190,10 +191,12 @@ body{font-family:var(--body);color:var(--ink);background:var(--page-bg);min-heig
 .state{text-align:center;padding:60px 10px;color:var(--ink2)}
 .state h2{font-family:var(--display);font-size:22px;color:var(--ink);margin-bottom:10px}
 .state .btn{margin-top:18px}
-.done{display:none;padding:calc(60px + var(--safe-t)) 0 40px;text-align:center}
+.done{display:none;padding:calc(60px + var(--safe-t)) 20px 40px;text-align:center}
 .done.show{display:flex;flex-direction:column;align-items:center;min-height:calc(100dvh - 20px)}
 .done .big{font-size:54px;line-height:1}
-.done h2{font-family:var(--display);font-weight:700;font-size:26px;margin:16px 0 10px}
+.done h2{font-family:var(--display);font-weight:800;font-size:clamp(30px,8.6vw,44px);line-height:1.08;letter-spacing:-.02em;margin:18px auto 14px;max-width:11em;text-wrap:balance}
+.done .done-line{display:block}
+.done .done-line + .done-line{margin-top:4px}
 .done p{color:var(--ink2);font-size:16px;max-width:28em;margin:0 auto}
 .done .done-main{flex:0 0 auto;width:100%}
 .done .done-thanks{margin-top:8px}
@@ -352,9 +355,8 @@ html:not(.dark-theme) .who{text-shadow:0 0 6px rgba(227,233,242,.95),0 0 14px rg
 @media (prefers-reduced-motion:reduce){.note-piece{display:none}}
 
 /* ── Конфетти при отправке ── */
-.confetti-piece{position:fixed;top:-12px;width:8px;height:14px;pointer-events:none;z-index:50;opacity:.95;animation-name:confettiFall;animation-timing-function:cubic-bezier(.4,.1,.6,.9);animation-fill-mode:forwards}
-@keyframes confettiFall{to{transform:translateY(112vh) rotate(var(--rot));opacity:0}}
-.note-cannon{position:fixed;left:0;top:0;pointer-events:none;z-index:51;line-height:1;font-family:system-ui,sans-serif;will-change:transform,opacity}
+.note-cannon{position:fixed;left:0;top:0;pointer-events:none;z-index:51;line-height:1;font-family:system-ui,sans-serif;opacity:0;will-change:transform,opacity}
+.done .btn{position:relative;z-index:52}
 </style>
 </head>
 <body>
@@ -373,7 +375,7 @@ html:not(.dark-theme) .who{text-shadow:0 0 6px rgba(227,233,242,.95),0 0 14px rg
     <p class="note">Выбор сохраняется на этом устройстве, поэтому можно прерваться и вернуться позже.</p>
     <div class="legend">
       <div><span class="ic m"><span class="dot f"></span></span><span><b>Точно надо</b> — песня обязательно прозвучит</span></div>
-      <div><span class="ic y"><span class="dot h"></span></span><span><b>Можно</b> — на усмотрение Петра, по настроению зала</span></div>
+      <div><span class="ic y"><span class="dot h"></span></span><span><b>Можно</b> — на усмотрение Петра</span></div>
       <div><span class="ic n"><span class="dot"></span></span><span><b>Нет</b> — значит нет</span></div>
     </div>
   </header>
@@ -390,9 +392,8 @@ html:not(.dark-theme) .who{text-shadow:0 0 6px rgba(227,233,242,.95),0 0 14px rg
 <section class="done wrap" id="done" aria-live="polite">
   <div class="done-main">
     <div class="big">🎹</div>
-    <h2>Список у Петра</h2>
-    <p id="done-text"></p>
-    <p class="done-thanks">Спасибо, вы супер! Ваши пожелания будут учтены при составлении программы.</p>
+    <h2>Спасибо, Вы супер!</h2>
+    <p id="done-text"><span class="done-line">Список уже у Петра.</span><span class="done-line">Ваши пожелания будут учтены при составлении программы.</span></p>
     <button class="btn" onclick="celebrate()">Отлично!</button>
   </div>
   <button class="btn-link" id="edit-link" type="button" onclick="editLink()">Изменить выбор</button>
@@ -416,7 +417,7 @@ html:not(.dark-theme) .who{text-shadow:0 0 6px rgba(227,233,242,.95),0 0 14px rg
     </div>
     <div class="field">
       <label for="f-title">Название события</label>
-      <input type="text" id="f-title" maxlength="120" placeholder="Свадьба, юбилей, корпоратив…">
+      <input type="text" id="f-title" maxlength="120" placeholder="Корпоратив «Газпром», день Никиты, свадьба Лебедева">
     </div>
     <div class="field">
       <label for="f-name">Ваше имя</label>
@@ -424,7 +425,7 @@ html:not(.dark-theme) .who{text-shadow:0 0 6px rgba(227,233,242,.95),0 0 14px rg
     </div>
     <div class="field">
       <label for="f-comment">Комментарий</label>
-      <textarea id="f-comment" maxlength="1500" placeholder="Например: первый танец под «…», больше танцевального во втором отделении"></textarea>
+      <textarea id="f-comment" maxlength="1500" placeholder="Опишите, что мне ещё важно знать о вечере, и ваши пожелания"></textarea>
     </div>
     <div class="hp" aria-hidden="true"><input type="text" id="f-website" tabindex="-1" autocomplete="off"></div>
     <div class="err" id="err"></div>
@@ -670,10 +671,10 @@ function pluralizeSongs(n) {
 
 function updateBar() {
   const t = tally()
-  const any = t.must + t.maybe + t.no
   const picked = t.must + t.maybe
+  const any = picked
   document.getElementById('counts').innerHTML = any
-    ? `<span class="nw">Нет <b>${t.no}</b></span> <span class="nw">Можно <b>${t.maybe}</b></span> <span class="nw">Надо <b>${t.must}</b></span>`
+    ? `<span class="nw">Можно <b>${t.maybe}</b></span> <span class="nw">Надо <b>${t.must}</b></span>`
     : 'Отметьте песни, которые хотите услышать'
   document.getElementById('send-btn').disabled = picked < MIN_PICKS
   document.getElementById('finish-btn').disabled = picked < MIN_PICKS
@@ -697,12 +698,17 @@ function jump(sec) {
   document.getElementById('sec-' + sec)?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
 }
 
+const todayStr = () => {
+  const d = new Date()
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+}
+
 function openSheet() {
   const t = tally()
   document.getElementById('sheet-sum').textContent = nb(
-    `Надо: ${t.must}, можно: ${t.maybe}, нет: ${t.no}.` + (t.left ? ` Неотмеченные ${t.left} Пётр подберёт сам.` : ''))
+    `Надо: ${t.must}, можно: ${t.maybe}.` + (t.left ? ` Неотмеченные ${t.left} Пётр подберёт сам.` : ''))
   const d = document.getElementById('f-date')
-  d.min = new Date().toISOString().slice(0, 10)
+  d.min = todayStr()
   document.getElementById('err').textContent = ''
   document.getElementById('overlay').classList.add('open')
   setTimeout(() => d.focus(), 60)
@@ -710,7 +716,11 @@ function openSheet() {
 function closeSheet() { document.getElementById('overlay').classList.remove('open') }
 document.getElementById('overlay').addEventListener('click', e => { if (e.target.id === 'overlay') closeSheet() })
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet() })
-document.getElementById('f-date').addEventListener('input', () => { document.getElementById('err').textContent = '' })
+document.getElementById('f-date').addEventListener('input', e => {
+  const el = e.target, err = document.getElementById('err')
+  err.textContent = ''
+  if (el.value && el.value < todayStr()) { err.textContent = 'Дата не может быть раньше сегодняшней'; el.value = '' }
+})
 
 function effectiveChoices() {
   const out = { ...choices }
@@ -718,10 +728,22 @@ function effectiveChoices() {
   return out
 }
 
+// Текст финального экрана: «Имя, список уже у Петра.» (или просто «Список уже у Петра.»)
+function fillDone() {
+  const name = document.getElementById('f-name').value.trim()
+  const l1 = document.createElement('span'); l1.className = 'done-line'
+  l1.textContent = nb(name ? `${name}, список уже у Петра.` : 'Список уже у Петра.')
+  const l2 = document.createElement('span'); l2.className = 'done-line'
+  l2.textContent = nb('Ваши пожелания будут учтены при составлении программы.')
+  const dt = document.getElementById('done-text')
+  dt.textContent = ''; dt.append(l1, l2)
+}
+
 async function submitBrief() {
   const date = document.getElementById('f-date').value
   const err = document.getElementById('err')
   if (!date) { err.textContent = 'Укажите дату события'; document.getElementById('f-date').focus(); return }
+  if (date < todayStr()) { err.textContent = 'Дата не может быть раньше сегодняшней'; document.getElementById('f-date').focus(); return }
   const btn = document.getElementById('submit-btn')
   btn.disabled = true; btn.textContent = 'Отправляю…'; err.textContent = ''
   try {
@@ -740,9 +762,7 @@ async function submitBrief() {
     const data = await r.json().catch(() => ({}))
     if (!r.ok || !data.ok) throw new Error(data.error || 'Не удалось отправить. Попробуйте ещё раз.')
     closeSheet()
-    const [y, m, d] = date.split('-')
-    const eventTitle = document.getElementById('f-title').value.trim()
-    document.getElementById('done-text').textContent = `Дата события: ${d}.${m}.${y}.${eventTitle ? ' ' + eventTitle : ''}`
+    fillDone()
     document.getElementById('app').style.display = 'none'
     document.getElementById('bar').style.display = 'none'
     document.getElementById('done').classList.add('show')
@@ -761,20 +781,24 @@ function toggleTheme() {
   if (m) m.content = isDark ? '#0a0a0c' : '#e3e9f2'
 }
 
-// Хлопушки с нотами: два залпа из нижних углов, ноты летят по дуге и опускаются
-function noteCannons() {
+// Ноты-хлопушки: веером вылетают из-за кнопки «Отлично!», летят по дуге и опускаются
+function celebrate() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  const btn = document.querySelector('#done .btn')
+  if (!btn) return
+  const r = btn.getBoundingClientRect()
+  const x0 = r.left + r.width / 2, y0 = r.top + r.height / 2
+  const W = innerWidth, H = innerHeight, g = H * 1.4
   const colors = ['#f08030','#e85060','#9060e0','#4030b0','#30b880','#1880c0','#e8a825','#c02050']
   const glyphs = ['\u266a', '\u266b', '\u266c']
-  const W = innerWidth, H = innerHeight, g = H * 1.4
   const R = (a, b) => a + Math.random() * (b - a)
-  for (let i = 0; i < 46; i++) {
-    const left = i % 2 === 0
-    const apex = H * R(.42, .85)
+  for (let i = 0; i < 44; i++) {
+    const ang = R(-58, 58)
+    const apex = R(.4, 1) * Math.max(160, y0)
     const vy = -Math.sqrt(2 * g * apex)
-    const vx = (left ? 1 : -1) * W * R(.06, .34)
-    const dur = (2 * -vy / g + .35) * 1000
-    const x0 = left ? 10 : W - 10, y0 = H - 10
+    const vx = (ang / 58) * W * R(.15, .42)
+    const tEnd = (-vy + Math.sqrt(vy * vy + 2 * g * (H + 50 - y0))) / g
+    const dur = Math.min(4200, tEnd * 1000)
     const rot0 = R(-40, 40), vr = R(-220, 220)
     const el = document.createElement('span')
     el.className = 'note-cannon'
@@ -782,43 +806,20 @@ function noteCannons() {
     el.style.fontSize = R(20, 36) + 'px'
     el.style.color = colors[i % colors.length]
     const frames = []
-    const N = 18
+    const N = 20
     for (let k = 0; k <= N; k++) {
       const u = k / N, t = u * dur / 1000
       const x = x0 + vx * t, y = y0 + vy * t + .5 * g * t * t
-      frames.push({ transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${(rot0 + vr * t).toFixed(1)}deg)`, opacity: u < .72 ? 1 : Math.max(0, 1 - (u - .72) / .28) })
+      const sc = Math.min(1, .35 + t * 3.5)
+      frames.push({
+        transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -50%) rotate(${(rot0 + vr * t).toFixed(1)}deg) scale(${sc.toFixed(2)})`,
+        opacity: k === 0 ? 0 : (u < .8 ? 1 : Math.max(0, 1 - (u - .8) / .2))
+      })
     }
     document.body.appendChild(el)
-    const a = el.animate(frames, { duration: dur, delay: R(0, 160), easing: 'linear', fill: 'forwards' })
+    const a = el.animate(frames, { duration: dur, delay: R(0, 220), easing: 'linear', fill: 'both' })
     a.onfinish = () => el.remove()
   }
-}
-
-function celebrate() {
-  confettiBurst()
-  noteCannons()
-}
-
-function confettiBurst() {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
-  const colors = ['#f08030','#e85060','#9060e0','#4030b0','#30b880','#1880c0','#e8a825','#c02050']
-  const frag = document.createDocumentFragment()
-  const pieces = []
-  for (let i = 0; i < 90; i++) {
-    const el = document.createElement('span')
-    el.className = 'confetti-piece'
-    const dur = 1.8 + Math.random() * 1.4
-    el.style.left = Math.random() * 100 + 'vw'
-    el.style.background = colors[i % colors.length]
-    el.style.setProperty('--rot', (360 + Math.random() * 360) + 'deg')
-    el.style.animationDuration = dur + 's'
-    el.style.animationDelay = (Math.random() * 0.3) + 's'
-    if (Math.random() < 0.5) el.style.borderRadius = '50%'
-    frag.appendChild(el)
-    pieces.push(el)
-  }
-  document.body.appendChild(frag)
-  setTimeout(() => pieces.forEach(el => el.remove()), 3600)
 }
 
 // «Изменить выбор» — двойное подтверждение, чтобы случайно не нажать
