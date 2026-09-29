@@ -194,9 +194,10 @@ body{font-family:var(--body);color:var(--ink);background:var(--page-bg);min-heig
 .done{display:none;padding:calc(60px + var(--safe-t)) 20px 40px;text-align:center}
 .done.show{display:flex;flex-direction:column;align-items:center;min-height:calc(100dvh - 20px)}
 .done .big{font-size:54px;line-height:1}
-.done h2{font-family:var(--display);font-weight:800;font-size:clamp(30px,8.6vw,44px);line-height:1.08;letter-spacing:-.02em;margin:18px auto 14px;max-width:11em;text-wrap:balance}
-.done .done-line{display:block}
-.done .done-line + .done-line{margin-top:4px}
+.done h2{font-family:var(--display);font-weight:800;letter-spacing:-.02em;margin:18px auto 16px}
+.done .dt1,.done .dt2{display:block;width:max-content;margin:0 auto;white-space:nowrap}
+.done .dt1{font-size:clamp(38px,12.5vw,64px);line-height:1}
+.done .dt2{font-size:30px;line-height:1.05;margin-top:.22em;color:var(--accent)}
 .done p{color:var(--ink2);font-size:16px;max-width:28em;margin:0 auto}
 .done .done-main{flex:0 0 auto;width:100%}
 .done .done-thanks{margin-top:8px}
@@ -392,8 +393,8 @@ html:not(.dark-theme) .who{text-shadow:0 0 6px rgba(227,233,242,.95),0 0 14px rg
 <section class="done wrap" id="done" aria-live="polite">
   <div class="done-main">
     <div class="big">🎹</div>
-    <h2>Спасибо, Вы супер!</h2>
-    <p id="done-text"><span class="done-line">Список уже у Петра.</span><span class="done-line">Ваши пожелания будут учтены при составлении программы.</span></p>
+    <h2><span class="dt1" id="dt1">Спасибо!</span><span class="dt2" id="dt2">Вы — супер!</span></h2>
+    <p id="done-text">Список уже у Петра. Ваши пожелания будут учтены при составлении программы.</p>
     <button class="btn" onclick="celebrate()">Отлично!</button>
   </div>
   <button class="btn-link" id="edit-link" type="button" onclick="editLink()">Изменить выбор</button>
@@ -731,13 +732,22 @@ function effectiveChoices() {
 // Текст финального экрана: «Имя, список уже у Петра.» (или просто «Список уже у Петра.»)
 function fillDone() {
   const name = document.getElementById('f-name').value.trim()
-  const l1 = document.createElement('span'); l1.className = 'done-line'
-  l1.textContent = nb(name ? `${name}, список уже у Петра.` : 'Список уже у Петра.')
-  const l2 = document.createElement('span'); l2.className = 'done-line'
-  l2.textContent = nb('Ваши пожелания будут учтены при составлении программы.')
-  const dt = document.getElementById('done-text')
-  dt.textContent = ''; dt.append(l1, l2)
+  const first = name ? `${name}, список уже у Петра.` : 'Список уже у Петра.'
+  document.getElementById('done-text').textContent = nb(first + ' Ваши пожелания будут учтены при составлении программы.')
 }
+
+// «Вы — супер!» подгоняем по ширине слова «Спасибо!»
+function fitDone() {
+  const a = document.getElementById('dt1'), b = document.getElementById('dt2')
+  if (!a || !b || !a.offsetWidth) return
+  b.style.fontSize = '100px'
+  const k = a.getBoundingClientRect().width / b.getBoundingClientRect().width
+  b.style.fontSize = (100 * k).toFixed(2) + 'px'
+  // вторая подгонка, чтобы ширина совпала до пикселя
+  const k2 = a.getBoundingClientRect().width / b.getBoundingClientRect().width
+  b.style.fontSize = (100 * k * k2).toFixed(2) + 'px'
+}
+window.addEventListener('resize', fitDone)
 
 async function submitBrief() {
   const date = document.getElementById('f-date').value
@@ -766,6 +776,7 @@ async function submitBrief() {
     document.getElementById('app').style.display = 'none'
     document.getElementById('bar').style.display = 'none'
     document.getElementById('done').classList.add('show')
+    fitDone(); if (document.fonts) document.fonts.ready.then(fitDone)
     window.scrollTo(0, 0)
     celebrate()
   } catch (e) {
@@ -781,25 +792,26 @@ function toggleTheme() {
   if (m) m.content = isDark ? '#0a0a0c' : '#e3e9f2'
 }
 
-// Ноты-хлопушки: веером вылетают из-за кнопки «Отлично!», летят по дуге и опускаются
+// Ноты вылетают из-за кнопки «Отлично!» во все стороны, замедляются и плавно гаснут
 function celebrate() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
   const btn = document.querySelector('#done .btn')
   if (!btn) return
   const r = btn.getBoundingClientRect()
   const x0 = r.left + r.width / 2, y0 = r.top + r.height / 2
-  const W = innerWidth, H = innerHeight, g = H * 1.4
+  const W = innerWidth, H = innerHeight
   const colors = ['#f08030','#e85060','#9060e0','#4030b0','#30b880','#1880c0','#e8a825','#c02050']
   const glyphs = ['\u266a', '\u266b', '\u266c']
   const R = (a, b) => a + Math.random() * (b - a)
-  for (let i = 0; i < 44; i++) {
-    const ang = R(-58, 58)
-    const apex = R(.4, 1) * Math.max(160, y0)
-    const vy = -Math.sqrt(2 * g * apex)
-    const vx = (ang / 58) * W * R(.15, .42)
-    const tEnd = (-vy + Math.sqrt(vy * vy + 2 * g * (H + 50 - y0))) / g
-    const dur = Math.min(4200, tEnd * 1000)
-    const rot0 = R(-40, 40), vr = R(-220, 220)
+  const COUNT = 56
+  for (let i = 0; i < COUNT; i++) {
+    const ang = (i / COUNT) * Math.PI * 2 + R(-.12, .12)
+    const reach = R(.22, 1)
+    const dx = Math.cos(ang) * reach * W * .62
+    const dy = Math.sin(ang) * reach * H * .46
+    const drift = H * R(.03, .16)
+    const dur = R(1900, 3000)
+    const rot0 = R(-40, 40), vr = R(-160, 160)
     const el = document.createElement('span')
     el.className = 'note-cannon'
     el.textContent = glyphs[i % 3]
@@ -808,16 +820,16 @@ function celebrate() {
     const frames = []
     const N = 20
     for (let k = 0; k <= N; k++) {
-      const u = k / N, t = u * dur / 1000
-      const x = x0 + vx * t, y = y0 + vy * t + .5 * g * t * t
+      const u = k / N, e = 1 - Math.pow(1 - u, 2.6), t = u * dur / 1000
+      const x = x0 + dx * e, y = y0 + dy * e + drift * u * u
       const sc = Math.min(1, .35 + t * 3.5)
       frames.push({
         transform: `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) translate(-50%, -50%) rotate(${(rot0 + vr * t).toFixed(1)}deg) scale(${sc.toFixed(2)})`,
-        opacity: k === 0 ? 0 : (u < .8 ? 1 : Math.max(0, 1 - (u - .8) / .2))
+        opacity: k === 0 ? 0 : (u < .62 ? 1 : Math.max(0, 1 - (u - .62) / .38))
       })
     }
     document.body.appendChild(el)
-    const a = el.animate(frames, { duration: dur, delay: R(0, 220), easing: 'linear', fill: 'both' })
+    const a = el.animate(frames, { duration: dur, delay: R(0, 200), easing: 'linear', fill: 'both' })
     a.onfinish = () => el.remove()
   }
 }
