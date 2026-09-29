@@ -178,11 +178,12 @@ body{font-family:var(--body);color:var(--ink);background:var(--page-bg);min-heig
 @keyframes up{from{transform:translateY(40px);opacity:.6}to{transform:none;opacity:1}}
 .sheet h3{font-family:var(--display);font-weight:700;font-size:20px;margin-bottom:6px}
 .sheet .sum{font-size:14.5px;color:var(--ink2);margin-bottom:18px}
-.field{margin-bottom:14px}
+.field{margin-bottom:14px;min-width:0}
 .field label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
 .field label i{font-style:normal;color:var(--accent)}
 .field input{text-overflow:ellipsis}
-.field input,.field textarea{width:100%;font:16px var(--body);color:var(--ink);background:#fff;border:1.5px solid #dcd8f0;border-radius:0;padding:12px 14px;outline:none}
+.field input,.field textarea{width:100%;min-width:0;max-width:100%;font:16px var(--body);color:var(--ink);background:#fff;border:1.5px solid #dcd8f0;border-radius:0;padding:12px 14px;outline:none}
+.field input[type="date"]{display:block;min-width:0;max-width:100%;width:100%}
 .field input:focus,.field textarea:focus{border-color:#8a70e0}
 .field textarea{min-height:92px;resize:vertical}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
@@ -441,7 +442,7 @@ html:not(.dark-theme) .who{text-shadow:0 0 6px rgba(227,233,242,.95),0 0 14px rg
     </div>
     <div class="field">
       <label for="f-comment">Комментарий</label>
-      <textarea id="f-comment" maxlength="1500" placeholder="Напишите, что ещё важно знать о вечере, и поделитесь пожеланиями"></textarea>
+      <textarea id="f-comment" maxlength="1500" placeholder="Напишите, что мне ещё важно знать о вечере и какие песни вы особенно хотели бы услышать в моём исполнении."></textarea>
     </div>
     <div class="hp" aria-hidden="true"><input type="text" id="f-website" tabindex="-1" autocomplete="off"></div>
     <div class="err" id="err"></div>
@@ -501,10 +502,10 @@ function toggleSound() {
 }
 
 const SOUND_EVENTS = {
-  no: [{ f: 494, t: 0, d: .075, v: .075 }],
-  maybe: [{ f: 587, t: 0, d: .08, v: .075 }],
-  must: [{ f: 698, t: 0, d: .09, v: .08 }],
-  cancel: [{ f: 392, t: 0, d: .075, v: .075 }],
+  no: [{ f: 523.25, t: 0, d: .055, v: .085 }],
+  maybe: [{ f: 587.33, t: 0, d: .055, v: .085 }],
+  must: [{ f: 659.25, t: 0, d: .055, v: .085 }],
+  cancel: [{ f: 493.88, t: 0, d: .055, v: .085 }],
   celebrate: [
     { f: 523.25, t: 0, d: .38, v: .05 },
     { f: 659.25, t: .095, d: .38, v: .05 },
@@ -524,6 +525,7 @@ function makeSoundUrl(name) {
   const data = new ArrayBuffer(44 + frames * 2)
   const view = new DataView(data)
   const write = (offset, value) => [...value].forEach((char, i) => view.setUint8(offset + i, char.charCodeAt(0)))
+  let seed = 9203 + Object.keys(SOUND_EVENTS).indexOf(name) * 41
   write(0, 'RIFF'); view.setUint32(4, 36 + frames * 2, true); write(8, 'WAVE')
   write(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true)
   view.setUint16(22, 1, true); view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * 2, true)
@@ -534,14 +536,22 @@ function makeSoundUrl(name) {
     events.forEach(({ f, t, d, v }) => {
       const local = time - t
       if (local < 0 || local > d) return
-      const envelope = Math.min(1, local / .003) * Math.exp(-5.2 * local / d)
-      const partials = [[1, 1], [2.01, .34], [3.02, .12], [4.04, .045], [5.08, .018]]
-      const pianoTone = partials.reduce((sum, [ratio, level], partial) => {
-        const damping = Math.exp(-partial * 1.15 * local / d)
-        return sum + Math.sin(2 * Math.PI * f * ratio * local) * level * damping
-      }, 0)
-      const hammer = Math.sin(2 * Math.PI * 2400 * local) * Math.exp(-local / .0018) * .035
-      sample += (pianoTone + hammer) * v * envelope
+      if (name !== 'celebrate') {
+        const envelope = Math.min(1, local / .001) * Math.exp(-8 * local / d)
+        seed = (seed * 16807) % 2147483647
+        const noise = seed / 1073741823.5 - 1
+        const click = noise * Math.exp(-local / .0017) * .22
+        sample += (Math.sin(2 * Math.PI * f * local) * .42 + click) * v * envelope
+      } else {
+        const envelope = Math.min(1, local / .003) * Math.exp(-5.2 * local / d)
+        const partials = [[1, 1], [2.01, .34], [3.02, .12], [4.04, .045], [5.08, .018]]
+        const pianoTone = partials.reduce((sum, [ratio, level], partial) => {
+          const damping = Math.exp(-partial * 1.15 * local / d)
+          return sum + Math.sin(2 * Math.PI * f * ratio * local) * level * damping
+        }, 0)
+        const hammer = Math.sin(2 * Math.PI * 2400 * local) * Math.exp(-local / .0018) * .035
+        sample += (pianoTone + hammer) * v * envelope
+      }
     })
     view.setInt16(44 + i * 2, Math.max(-1, Math.min(1, sample)) * 32767, true)
   }
