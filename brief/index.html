@@ -183,7 +183,7 @@ body{font-family:var(--body);color:var(--ink);background:var(--page-bg);min-heig
 .field label i{font-style:normal;color:var(--accent)}
 .field input{text-overflow:ellipsis}
 .field input,.field textarea{width:100%;min-width:0;max-width:100%;font:16px var(--body);color:var(--ink);background:#fff;border:1.5px solid #dcd8f0;border-radius:0;padding:12px 14px;outline:none}
-.field input[type="date"]{display:block;box-sizing:border-box;min-width:0;width:calc(100vw - 36px);max-width:100%}
+.field input[type="date"]{display:block;box-sizing:border-box;min-width:0;width:calc(100vw - 36px);max-width:100%;height:50px;min-height:50px}
 .field input:focus,.field textarea:focus{border-color:#8a70e0}
 .field textarea{min-height:92px;resize:vertical}
 .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
@@ -442,7 +442,7 @@ html:not(.dark-theme) .who{text-shadow:0 0 6px rgba(227,233,242,.95),0 0 14px rg
     </div>
     <div class="field">
       <label for="f-comment">Комментарий</label>
-      <textarea id="f-comment" maxlength="1500" placeholder="Напишите, что мне ещё важно знать о вечере и какие песни вы особенно хотели бы услышать в моём исполнении."></textarea>
+      <textarea id="f-comment" maxlength="1500" placeholder="Есть песня, которую особенно хочется услышать, или важная деталь вечера? Напишите здесь."></textarea>
     </div>
     <div class="hp" aria-hidden="true"><input type="text" id="f-website" tabindex="-1" autocomplete="off"></div>
     <div class="err" id="err"></div>
