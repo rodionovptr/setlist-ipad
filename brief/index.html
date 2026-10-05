@@ -511,8 +511,6 @@ function toggleSound() {
   if (!soundEnabled) {
     activeAudioPlayers.forEach(player => { player.pause(); player.currentTime = 0 })
     activeAudioPlayers.clear()
-    soundRequest++
-    activeSoundNodes.forEach(voice => fadeSoundNode(voice))
   }
   updateSoundButton()
 }
@@ -639,64 +637,18 @@ function makeSoundUrl(name) {
   return url
 }
 
-let interfaceAudioContext
-const decodedSounds = new Map()
-const activeSoundNodes = new Set()
-let soundRequest = 0
-
-function fadeSoundNode(voice, duration = .035) {
-  const now = interfaceAudioContext.currentTime
-  const gain = voice.gain.gain
-  if (gain.cancelAndHoldAtTime) gain.cancelAndHoldAtTime(now)
-  else { gain.cancelScheduledValues(now); gain.setValueAtTime(gain.value, now) }
-  gain.linearRampToValueAtTime(0, now + duration)
-  try { voice.source.stop(now + duration + .005) } catch {}
-}
-
-async function playSound(name) {
+function playSound(name) {
   if (!soundEnabled) return
-  const request = ++soundRequest
   try {
-    const Context = window.AudioContext || window.webkitAudioContext
-    if (!Context) {
-      const player = new Audio(makeSoundUrl(name))
-      player.volume = .9
-      activeAudioPlayers.add(player)
-      const cleanup = () => activeAudioPlayers.delete(player)
-      player.addEventListener('ended', cleanup, {once:true})
-      player.addEventListener('error', cleanup, {once:true})
-      player.play().catch(cleanup)
-      return
-    }
-    // Reuse one audio output; avoid reopening a media player for every click.
-    if (!interfaceAudioContext) interfaceAudioContext = new Context()
-    await interfaceAudioContext.resume()
-    if (!decodedSounds.has(name)) {
-      decodedSounds.set(name, fetch(makeSoundUrl(name))
-        .then(r => r.arrayBuffer())
-        .then(data => interfaceAudioContext.decodeAudioData(data)))
-    }
-    const buffer = await decodedSounds.get(name)
-    if (!soundEnabled || request !== soundRequest) return
-    if (name === 'richPiano') {
-      activeSoundNodes.forEach(voice => {
-        if (voice.name === name && !voice.fading) { voice.fading = true; fadeSoundNode(voice) }
-      })
-    }
-    const source = interfaceAudioContext.createBufferSource()
-    const gain = interfaceAudioContext.createGain()
-    source.buffer = buffer
-    source.connect(gain)
-    gain.connect(interfaceAudioContext.destination)
-    const now = interfaceAudioContext.currentTime + .005
-    gain.gain.setValueAtTime(0, now)
-    gain.gain.linearRampToValueAtTime(.9, now + (name === 'richPiano' ? .020 : .003))
-    gain.gain.setValueAtTime(.9, now + buffer.duration - .025)
-    gain.gain.linearRampToValueAtTime(0, now + buffer.duration)
-    const voice = {source, gain, name, fading:false}
-    activeSoundNodes.add(voice)
-    source.onended = () => { activeSoundNodes.delete(voice); source.disconnect(); gain.disconnect() }
-    source.start(now)
+    // HTML media playback preserves the original behavior with the phone's silent switch.
+    // The short fade-in is already baked into the celebration audio file.
+    const player = new Audio(makeSoundUrl(name))
+    player.volume = .9
+    activeAudioPlayers.add(player)
+    const cleanup = () => activeAudioPlayers.delete(player)
+    player.addEventListener('ended', cleanup, { once: true })
+    player.addEventListener('error', cleanup, { once: true })
+    player.play().catch(cleanup)
   } catch {}
 }
 
